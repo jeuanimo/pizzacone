@@ -22,7 +22,6 @@ except ImportError:
 from menu.models import Category, MenuItem, Ingredient
 from sales.models import Sale, SaleLineItem
 from core.models import LocationStop
-from core.security_utils import RateLimitMixin
 from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
@@ -279,6 +278,37 @@ def ingredient_restock(request, pk):
 
 # --------------------------------------------------------------------- Sales
 
+def _collect_sale_line_data(request, items):
+    line_data = []
+    for item in items:
+        raw_qty = request.POST.get(f'qty_{item.id}', 0) or 0
+        try:
+            qty = int(raw_qty)
+        except (TypeError, ValueError):
+            qty = 0
+        if qty > 0:
+            line_data.append((item, qty))
+    return line_data
+
+
+def _create_sale_with_lines(note_form, user, line_data):
+    sale = note_form.save(commit=False)
+    sale.recorded_by = user
+    sale.save()
+
+    for item, qty in line_data:
+        line = SaleLineItem.objects.create(
+            sale=sale,
+            menu_item=item,
+            item_name=item.name,
+            unit_price=item.price,
+            quantity=qty,
+        )
+        line.deduct_inventory()
+
+    sale.recalculate_total()
+    return sale
+
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
 @require_http_methods(["GET", "POST"])
@@ -287,28 +317,12 @@ def record_sale(request):
 
     if request.method == 'POST':
         note_form = SaleNoteForm(request.POST)
-        line_data = []
-        for item in items:
-            try:
-                qty = int(request.POST.get(f'qty_{item.id}', 0) or 0)
-            except ValueError:
-                qty = 0
-            if qty > 0:
-                line_data.append((item, qty))
+        line_data = _collect_sale_line_data(request, items)
 
         if not line_data:
             messages.error(request, 'Add at least one item with a quantity before recording the sale.')
         elif note_form.is_valid():
-            sale = note_form.save(commit=False)
-            sale.recorded_by = request.user
-            sale.save()
-            for item, qty in line_data:
-                line = SaleLineItem.objects.create(
-                    sale=sale, menu_item=item, item_name=item.name,
-                    unit_price=item.price, quantity=qty,
-                )
-                line.deduct_inventory()
-            sale.recalculate_total()
+            sale = _create_sale_with_lines(note_form, request.user, line_data)
             messages.success(request, f'Sale #{sale.pk} recorded — ${sale.total}.')
             return redirect('dashboard:record_sale')
     else:

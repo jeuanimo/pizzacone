@@ -3,15 +3,15 @@ services:
     name: pizzacone
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput"
-    startCommand: "gunicorn pizzacone_project.wsgi:application"
+    buildCommand: pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput
+    startCommand: gunicorn pizzacone_project.wsgi:application
     envVars:
       - key: DEBUG
-        value: "False"
+        value: False
       - key: ENVIRONMENT
-        value: "production"
+        value: production
       - key: PYTHON_VERSION
-        value: "3.12.2"
+        value: 3.12.2
     autoDeploy: true
     disk:
       - name: media

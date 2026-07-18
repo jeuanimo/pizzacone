@@ -6,7 +6,11 @@
 {% block content %}
 
 <section class="hero">
-  <img src="{% static 'images/hero-banner.png' %}" alt="The Pizza Cone Co. — All of the flavor, none of the mess" class="hero-banner-img">
+  <div class="hero-banner-wrap">
+    <img src="{% static 'images/hero-banner.png' %}" alt="The Pizza Cone Co. — All of the flavor, none of the mess" class="hero-banner-img">
+    <a href="https://www.instagram.com/thepizzaconecompany" target="_blank" rel="noopener" class="hero-social-link hero-social-instagram" aria-label="Follow us on Instagram"></a>
+    <a href="https://www.facebook.com/share/1Eds6fPkQd/" target="_blank" rel="noopener" class="hero-social-link hero-social-facebook" aria-label="Follow us on Facebook"></a>
+  </div>
   <div class="hero-cta">
     <h1>All of the Flavor. None of the Mess.</h1>
     <p>Hot, fresh pizza baked right into a crispy cone — made to order at our counter.</p>
