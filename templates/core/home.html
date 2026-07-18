@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}The Pizza Cone Co. — Pizza On The Go!{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <img src="{% static 'images/hero-banner.png' %}" alt="The Pizza Cone Co. — All of the flavor, none of the mess" class="hero-banner-img">
+  <div class="hero-cta">
+    <h1>All of the Flavor. None of the Mess.</h1>
+    <p>Hot, fresh pizza baked right into a crispy cone — made to order at our counter.</p>
+    <a href="{% url 'menu:menu_list' %}" class="btn btn-gold">See The Menu</a>
+  </div>
+</section>
+
+<section class="feature-strip">
+  <div class="container" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+    <ul style="margin:0;">
+      <li>🔥 Hot &amp; Fresh</li>
+      <li>⭐ Made to Order</li>
+      <li>🤚 Easy to Hold</li>
+      <li>❤️ Hard to Put Down</li>
+    </ul>
+  </div>
+</section>
+
+{% if todays_stop %}
+  <section style="background:var(--pc-red); color:#fff; padding:14px 0; text-align:center;">
+    <div class="container">
+      <strong>📍 We're here today!</strong> {{ todays_stop.name }}{% if todays_stop.address %} — {{ todays_stop.address }}{% endif %}
+      &nbsp;({{ todays_stop.start_time|time:"g:i A" }}–{{ todays_stop.end_time|time:"g:i A" }})
+      &nbsp;<a href="{% url 'core:visit' %}" style="color:var(--pc-gold); font-weight:800;">Get Directions →</a>
+    </div>
+  </section>
+{% elif next_stop %}
+  <section style="background:var(--pc-black); color:var(--pc-cream); padding:14px 0; text-align:center;">
+    <div class="container">
+      <strong>📍 Next stop:</strong> {{ next_stop.name }} on {{ next_stop.date|date:"D, M j" }}
+      &nbsp;<a href="{% url 'core:visit' %}" style="color:var(--pc-gold); font-weight:800;">See Full Schedule →</a>
+    </div>
+  </section>
+{% endif %}
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Fan Favorites</h2>
+    <p class="section-subtitle">Pizza on the go — grab it, love it, repeat.</p>
+
+    <div class="item-grid">
+      {% for item in featured_items %}
+        <div class="item-card">
+          {% if item.is_featured %}<span class="badge">New!</span>{% endif %}
+          <a href="{{ item.get_absolute_url }}" class="item-card-img">
+            {% if item.image %}
+              <img src="{{ item.image.url }}" alt="{{ item.name }}">
+            {% else %}
+              <img src="{% static 'images/logo-black.png' %}" alt="{{ item.name }}">
+            {% endif %}
+          </a>
+          <div class="item-card-body">
+            <h3><a href="{{ item.get_absolute_url }}">{{ item.name }}</a></h3>
+            <p>{{ item.description|truncatewords:14 }}</p>
+            <div class="item-card-footer">
+              <span class="item-price">${{ item.price }}</span>
+              <a href="{{ item.get_absolute_url }}" class="btn btn-primary btn-sm">Details</a>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p>Menu items coming soon — check back shortly!</p>
+      {% endfor %}
+    </div>
+
+    <div style="text-align:center; margin-top:34px;">
+      <a href="{% url 'menu:menu_list' %}" class="btn btn-outline">See Full Menu</a>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:#fff;">
+  <div class="container" style="display:flex; align-items:center; gap:40px; flex-wrap:wrap;">
+    <div style="flex:1; min-width:260px;">
+      <h2 class="section-title" style="text-align:left;">New! Frozen Lemonade</h2>
+      <p style="color:var(--pc-gray); font-size:1.05rem;">Cool off with our frozen lemonade, topped with real strawberries. The perfect pair for your pizza cone.</p>
+      <a href="{% url 'menu:menu_list' %}" class="btn btn-primary">See Full Menu</a>
+    </div>
+    <div style="flex:1; min-width:260px; max-width:340px;">
+      <img src="{% static 'images/frozen-lemonade.jpg' %}" alt="Frozen Lemonade with real strawberries" style="border-radius:14px; box-shadow:var(--shadow);">
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Delete {{ ingredient.name }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Delete "{{ ingredient.name }}"?</h1>
+<p style="color:var(--pc-gray);">Any menu item recipes using this ingredient will lose that ingredient line. This can't be undone.</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Yes, Delete</button>
+  <a href="{% url 'dashboard:inventory_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

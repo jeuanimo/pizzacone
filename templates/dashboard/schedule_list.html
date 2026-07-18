@@ -1,0 +1,54 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% load static %}
+{% block title %}Location Schedule — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Location Schedule</h1>
+  <a href="{% url 'dashboard:schedule_create' %}" class="btn btn-primary">+ Add a Stop</a>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr><th>Photo</th><th>Date</th><th>Time</th><th>Location</th><th>Notes</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for stop in stops %}
+      <tr>
+        <td>
+          {% if stop.image %}
+            <img src="{{ stop.image.url }}" class="thumb-sm" alt="{{ stop.name }}">
+          {% else %}
+            <span style="color:var(--pc-gray); font-size:0.8rem;">—</span>
+          {% endif %}
+        </td>
+        <td>{{ stop.date|date:"D, M j, Y" }}</td>
+        <td>{{ stop.start_time|time:"g:i A" }} – {{ stop.end_time|time:"g:i A" }}</td>
+        <td>
+          {{ stop.name }}
+          {% if stop.address %}<br><span style="color:var(--pc-gray); font-size:0.85rem;">{{ stop.address }}</span>{% endif %}
+          {% if stop.has_map_pin %}<br><span style="color:var(--pc-gray); font-size:0.8rem;">📍 {{ stop.latitude }}, {{ stop.longitude }}</span>{% endif %}
+        </td>
+        <td>{{ stop.notes|default:"—" }}</td>
+        <td>
+          {% if stop.is_cancelled %}
+            <span class="status-badge status-cancelled">Cancelled</span>
+          {% elif stop.is_today %}
+            <span class="status-badge status-ready">Today</span>
+          {% elif stop.is_past %}
+            <span class="status-badge status-completed">Past</span>
+          {% else %}
+            <span class="status-badge status-preparing">Upcoming</span>
+          {% endif %}
+        </td>
+        <td style="display:flex; gap:6px;">
+          <a href="{% url 'dashboard:schedule_edit' stop.pk %}" class="btn btn-outline btn-sm">Edit</a>
+          <a href="{% url 'dashboard:schedule_delete' stop.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7">No stops scheduled yet. <a href="{% url 'dashboard:schedule_create' %}">Add your first one</a>.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

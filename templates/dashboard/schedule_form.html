@@ -1,0 +1,28 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}{{ title }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">{{ title }}</h1>
+
+<form method="post" enctype="multipart/form-data" style="max-width:520px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small style="color:var(--pc-gray);">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+
+  {% if stop.image %}
+    <div class="form-group">
+      <label>Current Photo</label>
+      <img src="{{ stop.image.url }}" style="width:160px; border-radius:10px;">
+    </div>
+  {% endif %}
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{% url 'dashboard:schedule_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

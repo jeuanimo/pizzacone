@@ -1,0 +1,33 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Sales History — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Sales History</h1>
+  <a href="{% url 'dashboard:record_sale' %}" class="btn btn-primary">💰 Record a Sale</a>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr><th>#</th><th>Date</th><th>Items</th><th>Total</th><th>Payment</th><th>Recorded By</th></tr>
+  </thead>
+  <tbody>
+    {% for sale in sales %}
+      <tr>
+        <td>{{ sale.pk }}</td>
+        <td>{{ sale.created_at|date:"M d, Y g:i A" }}</td>
+        <td>
+          {% for line in sale.line_items.all %}
+            {{ line.quantity }}&times;{{ line.item_name }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}
+        </td>
+        <td>${{ sale.total }}</td>
+        <td>{{ sale.get_payment_method_display }}</td>
+        <td>{{ sale.recorded_by|default:"—" }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No sales recorded yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

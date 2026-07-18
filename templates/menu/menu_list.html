@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Menu — The Pizza Cone Co.{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="section-title">Our Menu</h1>
+    <p class="section-subtitle">All of the flavor, none of the mess. Order in person at the counter — takeaway only.</p>
+
+    {% for category in categories %}
+      <div class="menu-category">
+        <h2 class="menu-category-title">{{ category.name }}</h2>
+        {% if category.description %}<p style="color:var(--pc-gray); margin-top:-14px;">{{ category.description }}</p>{% endif %}
+
+        <div class="item-grid">
+          {% for item in category.items.all %}
+            {% if item.is_available %}
+              <div class="item-card">
+                {% if item.is_featured %}<span class="badge">New!</span>{% endif %}
+                {% if not item.is_in_stock %}<span class="badge" style="background:#b3261e; color:#fff; left:auto; right:10px;">Sold Out</span>{% endif %}
+                <a href="{{ item.get_absolute_url }}" class="item-card-img">
+                  {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                  {% else %}
+                    <img src="{% static 'images/logo-black.png' %}" alt="{{ item.name }}">
+                  {% endif %}
+                </a>
+                <div class="item-card-body">
+                  <h3><a href="{{ item.get_absolute_url }}">{{ item.name }}</a></h3>
+                  <p>{{ item.description|truncatewords:14 }}</p>
+                  <div class="item-card-footer">
+                    <span class="item-price">${{ item.price }}</span>
+                    <a href="{{ item.get_absolute_url }}" class="btn btn-primary btn-sm">Details</a>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <p>Our menu is being freshly prepared — check back soon!</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

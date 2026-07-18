@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Find Us — The Pizza Cone Co.{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <h1 class="section-title">Find Us</h1>
+    <p class="section-subtitle">We move around — here's where to catch us.</p>
+
+    {% if todays_stop %}
+      <div class="confirmation-box" style="text-align:left; border:3px solid var(--pc-gold); margin-bottom:34px; max-width:none;">
+        <span class="status-badge status-ready" style="margin-bottom:10px;">Here Today</span>
+        <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+          {% if todays_stop.image %}
+            <img src="{{ todays_stop.image.url }}" alt="{{ todays_stop.name }}" style="width:220px; border-radius:12px; box-shadow:var(--shadow);">
+          {% endif %}
+          <div style="flex:1; min-width:240px;">
+            <h2 style="margin:6px 0 4px; color:var(--pc-red);">{{ todays_stop.name }}</h2>
+            {% if todays_stop.address %}<p style="margin:0 0 6px;">{{ todays_stop.address }}</p>{% endif %}
+            <p style="font-weight:700; margin:0 0 6px;">{{ todays_stop.start_time|time:"g:i A" }} – {{ todays_stop.end_time|time:"g:i A" }}</p>
+            {% if todays_stop.notes %}<p style="color:var(--pc-gray); margin:0 0 10px;">{{ todays_stop.notes }}</p>{% endif %}
+            {% if todays_stop.directions_url %}<a href="{{ todays_stop.directions_url }}" target="_blank" rel="noopener" class="btn btn-primary">Get Directions</a>{% endif %}
+          </div>
+        </div>
+        {% if todays_stop.map_embed_url %}
+          <div style="margin-top:20px; border-radius:12px; overflow:hidden; box-shadow:var(--shadow);">
+            <iframe src="{{ todays_stop.map_embed_url }}" width="100%" height="280" style="border:0; display:block;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </div>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="empty-state" style="margin-bottom:34px;">
+        <p>We're not out today — check the upcoming schedule below, or give us a call.</p>
+      </div>
+    {% endif %}
+
+    <h2 class="section-title" style="font-size:1.6rem;">Upcoming Stops</h2>
+    {% if upcoming_stops %}
+      <div class="item-grid" style="margin-bottom:20px;">
+        {% for stop in upcoming_stops %}
+          <div class="item-card">
+            <div class="item-card-img">
+              {% if stop.image %}
+                <img src="{{ stop.image.url }}" alt="{{ stop.name }}">
+              {% else %}
+                <img src="{% static 'images/logo-black.png' %}" alt="{{ stop.name }}">
+              {% endif %}
+            </div>
+            <div class="item-card-body">
+              <h3>{{ stop.name }}</h3>
+              <p>{{ stop.date|date:"D, M j" }} &middot; {{ stop.start_time|time:"g:i A" }}–{{ stop.end_time|time:"g:i A" }}</p>
+              {% if stop.address %}<p>{{ stop.address }}</p>{% endif %}
+              {% if stop.notes %}<p>{{ stop.notes }}</p>{% endif %}
+              {% if stop.directions_url %}
+                <div class="item-card-footer">
+                  <a href="{{ stop.directions_url }}" target="_blank" rel="noopener" class="btn btn-outline btn-sm">Directions</a>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p style="color:var(--pc-gray);">No upcoming stops scheduled yet — check back soon!</p>
+    {% endif %}
+
+    <div class="confirmation-box" style="text-align:left; margin-top:40px;">
+      <h3 style="margin-top:0; color:var(--pc-red);">📞 Contact</h3>
+      <p>{{ store_phone }}</p>
+      <h3 style="color:var(--pc-red);">⏰ Typical Hours</h3>
+      <p>{{ store_hours }}</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Sales Reports — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Sales Reports</h1>
+
+<div style="margin-bottom:22px;">
+  <a href="?period=today" class="filter-chip {% if period == 'today' %}active{% endif %}">Today</a>
+  <a href="?period=week" class="filter-chip {% if period == 'week' %}active{% endif %}">This Week</a>
+  <a href="?period=month" class="filter-chip {% if period == 'month' %}active{% endif %}">This Month</a>
+  <a href="?period=all" class="filter-chip {% if period == 'all' %}active{% endif %}">All Time</a>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="num">${{ summary.total_revenue|default:"0.00"|floatformat:2 }}</div>
+    <div class="label">Revenue — {{ label }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="num">{{ summary.sale_count|default:"0" }}</div>
+    <div class="label">Sales — {{ label }}</div>
+  </div>
+</div>
+
+<div class="table-toolbar">
+  <h2 style="margin:0;">Best Sellers — {{ label }}</h2>
+</div>
+<table class="data-table">
+  <thead><tr><th>Item</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+  <tbody>
+    {% for row in best_sellers %}
+      <tr>
+        <td>{{ row.item_name }}</td>
+        <td>{{ row.total_qty }}</td>
+        <td>${{ row.total_revenue|floatformat:2 }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="3">No sales in this period yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

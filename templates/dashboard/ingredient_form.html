@@ -1,0 +1,19 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}{{ title }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">{{ title }}</h1>
+<form method="post" style="max-width:480px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small style="color:var(--pc-gray);">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{% url 'dashboard:inventory_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

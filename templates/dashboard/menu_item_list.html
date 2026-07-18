@@ -1,0 +1,54 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% load static %}
+{% block title %}Menu Items — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Menu Items</h1>
+  <a href="{% url 'dashboard:menu_item_create' %}" class="btn btn-primary">+ Add Menu Item</a>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Photo</th>
+      <th>Name</th>
+      <th>Category</th>
+      <th>Price</th>
+      <th>Status</th>
+      <th>Featured</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+      <tr>
+        <td>
+          {% if item.image %}
+            <img src="{{ item.image.url }}" class="thumb-sm" alt="{{ item.name }}">
+          {% else %}
+            <img src="{% static 'images/logo-black.png' %}" class="thumb-sm" alt="{{ item.name }}">
+          {% endif %}
+        </td>
+        <td>{{ item.name }}</td>
+        <td>{{ item.category.name }}</td>
+        <td>${{ item.price }}</td>
+        <td>
+          {% if item.is_available %}
+            <span class="status-badge status-ready">Available</span>
+          {% else %}
+            <span class="status-badge status-cancelled">Hidden</span>
+          {% endif %}
+        </td>
+        <td>{% if item.is_featured %}⭐{% endif %}</td>
+        <td style="display:flex; gap:6px;">
+          <a href="{% url 'dashboard:menu_item_edit' item.pk %}" class="btn btn-outline btn-sm">Edit</a>
+          <a href="{% url 'dashboard:menu_item_delete' item.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="7">No menu items yet. <a href="{% url 'dashboard:menu_item_create' %}">Add your first one</a>.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

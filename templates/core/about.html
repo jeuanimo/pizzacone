@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}About Us — The Pizza Cone Co.{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="display:flex; gap:40px; align-items:center; flex-wrap:wrap;">
+    <div style="flex:1; min-width:260px; max-width:320px;">
+      <img src="{% static 'images/staff-photo.png' %}" alt="Our team" style="border-radius:14px; box-shadow:var(--shadow);">
+    </div>
+    <div style="flex:2; min-width:280px;">
+      <h1 class="section-title" style="text-align:left;">About The Pizza Cone Co.</h1>
+      <p style="font-size:1.05rem; color:var(--pc-gray);">
+        We took everything you love about pizza and made it portable. Every Pizza Cone
+        is hot, fresh, and made to order — hand-loaded with melted mozzarella and your
+        favorite toppings, baked right into a crispy, edible cone. No plate, no fork,
+        no mess. Just grab it, love it, and repeat.
+      </p>
+      <p style="font-size:1.05rem; color:var(--pc-gray);">
+        Whether you're craving Cheese, Pepperoni, Italian Sausage, Veggie, or our
+        Meat Lovers cone, we've got a flavor for everyone — plus a Frozen Lemonade
+        with real strawberries to wash it down.
+      </p>
+      <a href="{% url 'menu:menu_list' %}" class="btn btn-primary">View Menu</a>
+      <a href="{% url 'core:visit' %}" class="btn btn-outline">Find Us</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

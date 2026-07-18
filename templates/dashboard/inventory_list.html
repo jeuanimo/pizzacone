@@ -1,0 +1,51 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Inventory — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Inventory</h1>
+  <a href="{% url 'dashboard:ingredient_create' %}" class="btn btn-primary">+ Add Ingredient</a>
+</div>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Ingredient</th>
+      <th>On Hand</th>
+      <th>Reorder Threshold</th>
+      <th>Status</th>
+      <th>Restock</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ingredient in ingredients %}
+      <tr>
+        <td>{{ ingredient.name }}</td>
+        <td>{{ ingredient.quantity_on_hand }} {{ ingredient.get_unit_display }}</td>
+        <td>{{ ingredient.reorder_threshold }} {{ ingredient.get_unit_display }}</td>
+        <td>
+          {% if ingredient.is_low_stock %}
+            <span class="status-badge status-cancelled">Low Stock</span>
+          {% else %}
+            <span class="status-badge status-ready">OK</span>
+          {% endif %}
+        </td>
+        <td>
+          <form action="{% url 'dashboard:ingredient_restock' ingredient.pk %}" method="post" style="display:flex; gap:6px;">
+            {% csrf_token %}
+            <input type="number" name="amount" step="0.01" min="0" class="qty-input" placeholder="Add" required>
+            <button type="submit" class="btn btn-gold btn-sm">Restock</button>
+          </form>
+        </td>
+        <td style="display:flex; gap:6px;">
+          <a href="{% url 'dashboard:ingredient_edit' ingredient.pk %}" class="btn btn-outline btn-sm">Edit</a>
+          <a href="{% url 'dashboard:ingredient_delete' ingredient.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No ingredients tracked yet. <a href="{% url 'dashboard:ingredient_create' %}">Add your first one</a>.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

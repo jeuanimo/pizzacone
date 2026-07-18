@@ -1,0 +1,53 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}{{ title }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">{{ title }}</h1>
+
+<form method="post" enctype="multipart/form-data" style="max-width:640px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+      {% if field.help_text %}<small style="color:var(--pc-gray);">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+
+  {% if item.image %}
+    <div class="form-group">
+      <label>Current Image</label>
+      <img src="{{ item.image.url }}" style="width:120px; border-radius:10px;">
+    </div>
+  {% endif %}
+
+  {% if formset %}
+    <h2 style="margin-top:36px;">Recipe (Ingredients Used)</h2>
+    <p style="color:var(--pc-gray); font-size:0.9rem;">
+      Define how much of each ingredient this item uses. Selling this item will automatically deduct these amounts from inventory.
+    </p>
+    {{ formset.management_form }}
+    <table class="data-table" style="margin-bottom:18px;">
+      <thead><tr><th>Ingredient</th><th>Qty Required</th><th>Remove</th></tr></thead>
+      <tbody>
+        {% for line_form in formset %}
+          <tr>
+            <td>{{ line_form.ingredient }}{{ line_form.id }}</td>
+            <td>{{ line_form.quantity_required }}</td>
+            <td>{% if line_form.instance.pk %}{{ line_form.DELETE }}{% endif %}</td>
+          </tr>
+          {% if line_form.errors %}<tr><td colspan="3" class="form-errors">{{ line_form.errors }}</td></tr>{% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p style="color:var(--pc-gray); font-size:0.9rem; margin-top:20px;">
+      Save this item first, then you'll be able to define its recipe (ingredients used).
+    </p>
+  {% endif %}
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{% url 'dashboard:menu_item_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

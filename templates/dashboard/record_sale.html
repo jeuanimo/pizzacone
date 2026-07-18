@@ -1,0 +1,65 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% load static %}
+{% block title %}Record Sale — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Record a Sale</h1>
+<p style="color:var(--pc-gray);">Enter the quantity sold for each item, then submit. Inventory will be deducted automatically.</p>
+
+<form method="post">
+  {% csrf_token %}
+
+  <table class="data-table" style="margin-bottom:22px;">
+    <thead>
+      <tr>
+        <th>Photo</th>
+        <th>Item</th>
+        <th>Price</th>
+        <th>In Stock</th>
+        <th>Qty Sold</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+        <tr>
+          <td>
+            {% if item.image %}<img src="{{ item.image.url }}" class="thumb-sm" alt="{{ item.name }}">
+            {% else %}<img src="{% static 'images/logo-black.png' %}" class="thumb-sm" alt="{{ item.name }}">{% endif %}
+          </td>
+          <td>{{ item.name }}</td>
+          <td>${{ item.price }}</td>
+          <td>
+            {% with max_qty=item.max_sellable_quantity %}
+              {% if max_qty is None %}
+                <span class="status-badge status-ready">Untracked</span>
+              {% elif max_qty <= 0 %}
+                <span class="status-badge status-cancelled">Out of Stock</span>
+              {% else %}
+                <span class="status-badge status-ready">{{ max_qty }} left</span>
+              {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <input type="number" name="qty_{{ item.id }}" value="0" min="0" class="qty-input" style="width:80px;">
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5">No available menu items to sell. <a href="{% url 'dashboard:menu_item_create' %}">Add one</a>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="max-width:420px;">
+    <div class="form-group">
+      <label for="{{ note_form.payment_method.id_for_label }}">Payment Method</label>
+      {{ note_form.payment_method }}
+    </div>
+    <div class="form-group">
+      <label for="{{ note_form.note.id_for_label }}">Note (optional)</label>
+      {{ note_form.note }}
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Complete Sale</button>
+</form>
+{% endblock %}

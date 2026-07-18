@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Staff Login — The Pizza Cone Co.{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="login-box">
+      <h1 style="text-align:center; color:var(--pc-red); margin-top:0;">Staff Login</h1>
+      <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="{{ form.username.id_for_label }}">Username</label>
+          {{ form.username }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.password.id_for_label }}">Password</label>
+          {{ form.password }}
+        </div>
+        {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+        <button type="submit" class="btn btn-primary btn-block">Log In</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
