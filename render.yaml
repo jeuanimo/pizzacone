@@ -24,4 +24,4 @@ services:
 
 databases:
   - name: pizzacone-db
-    plan: free
+    plan: standard
