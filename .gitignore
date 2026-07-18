@@ -43,8 +43,9 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 /media
-/static
 /staticfiles
+static/admin
+static/rest_framework
 
 # Environment variables
 .env
