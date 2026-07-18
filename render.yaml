@@ -18,9 +18,9 @@ services:
           property: connectionString
     autoDeploy: true
     disk:
-      - name: media
-        mountPath: /opt/render/project/src/media
-        sizeGB: 1
+      name: media
+      mountPath: /opt/render/project/src/media
+      sizeGB: 1
 
 databases:
   - name: pizzacone-db
