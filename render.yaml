@@ -22,7 +22,6 @@ services:
         mountPath: /opt/render/project/src/media
         sizeGB: 1
 
-  - type: pserv
-    name: pizzacone-db
+databases:
+  - name: pizzacone-db
     plan: free
-    ipAllowList: []
