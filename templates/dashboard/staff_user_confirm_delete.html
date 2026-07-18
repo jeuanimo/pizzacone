@@ -1,0 +1,12 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Delete {{ staff_member.username }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Delete staff account "{{ staff_member.username }}"?</h1>
+<p style="color:var(--pc-gray);">This can't be undone. Past sales they recorded will keep showing their username in history.</p>
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Yes, Delete</button>
+  <a href="{% url 'dashboard:staff_user_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

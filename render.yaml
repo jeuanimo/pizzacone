@@ -13,6 +13,10 @@ services:
       - key: PYTHON_VERSION
         value: "3.12.2"
     autoDeploy: true
+    disk:
+      - name: media
+        mountPath: /opt/render/project/src/media
+        sizeGB: 1
 
   - type: pserv
     name: pizzacone-db

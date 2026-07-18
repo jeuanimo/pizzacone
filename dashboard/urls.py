@@ -27,6 +27,14 @@ urlpatterns = [
     path('sales/record/', views.record_sale, name='record_sale'),
     path('sales/history/', views.sales_history, name='sales_history'),
     path('sales/reports/', views.sales_reports, name='sales_reports'),
+    path('sales/<int:pk>/', views.sale_detail, name='sale_detail'),
+    path('sales/<int:pk>/void/', views.sale_void, name='sale_void'),
+
+    path('staff-accounts/', views.staff_user_list, name='staff_user_list'),
+    path('staff-accounts/add/', views.staff_user_create, name='staff_user_create'),
+    path('staff-accounts/<int:pk>/edit/', views.staff_user_edit, name='staff_user_edit'),
+    path('staff-accounts/<int:pk>/password/', views.staff_user_set_password, name='staff_user_set_password'),
+    path('staff-accounts/<int:pk>/delete/', views.staff_user_delete, name='staff_user_delete'),
 
     path('schedule/', views.schedule_list, name='schedule_list'),
     path('schedule/add/', views.schedule_create, name='schedule_create'),

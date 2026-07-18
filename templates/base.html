@@ -26,6 +26,11 @@
         <a href="{% url 'menu:menu_list' %}">Menu</a>
         <a href="{% url 'core:about' %}">About</a>
         <a href="{% url 'core:visit' %}" class="cart-pill">📍 Find Us</a>
+        {% if request.user.is_authenticated and request.user.is_staff %}
+          <a href="{% url 'dashboard:home' %}" title="Staff Dashboard">🔒 Dashboard</a>
+        {% else %}
+          <a href="{% url 'dashboard:login' %}" title="Staff Login">🔒 Staff Login</a>
+        {% endif %}
       </nav>
     </div>
   </header>

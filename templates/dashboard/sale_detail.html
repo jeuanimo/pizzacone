@@ -1,0 +1,37 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Sale #{{ sale.pk }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Sale #{{ sale.pk }}</h1>
+<p style="color:var(--pc-gray);">{{ sale.created_at|date:"M d, Y g:i A" }} &middot; Recorded by {{ sale.recorded_by|default:"—" }}</p>
+
+<table class="data-table" style="margin-bottom:26px; max-width:600px;">
+  <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Subtotal</th></tr></thead>
+  <tbody>
+    {% for line in sale.line_items.all %}
+      <tr>
+        <td>{{ line.item_name }}</td>
+        <td>{{ line.quantity }}</td>
+        <td>${{ line.unit_price }}</td>
+        <td>${{ line.subtotal }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p style="font-size:1.2rem; font-weight:800; color:var(--pc-red);">Total: ${{ sale.total }}</p>
+
+<form method="post" style="max-width:420px; margin-bottom:20px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+      {{ field }}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Save Changes</button>
+  <a href="{% url 'dashboard:sales_history' %}" class="btn btn-outline">Back</a>
+</form>
+
+<a href="{% url 'dashboard:sale_void' sale.pk %}" class="btn btn-danger">Void This Sale</a>
+{% endblock %}

@@ -3,6 +3,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# The custom staff dashboard at /staff/ is the intended way for staff to manage
+# the site — regular staff accounts should never need Django admin. This
+# restricts /admin/ to superusers only, even if a staff account tries to log
+# in there directly.
+admin.site.has_permission = lambda request: request.user.is_active and request.user.is_superuser
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('core.urls')),

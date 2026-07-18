@@ -4,12 +4,15 @@
   <aside class="dashboard-sidebar">
     <a href="{% url 'dashboard:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">📊 Overview</a>
     <a href="{% url 'dashboard:record_sale' %}" class="{% if request.resolver_match.url_name == 'record_sale' %}active{% endif %}">💰 Record Sale</a>
-    <a href="{% url 'dashboard:sales_history' %}" class="{% if request.resolver_match.url_name == 'sales_history' %}active{% endif %}">🧾 Sales History</a>
+    <a href="{% url 'dashboard:sales_history' %}" class="{% if request.resolver_match.url_name in 'sales_history,sale_detail,sale_void' %}active{% endif %}">🧾 Sales History</a>
     <a href="{% url 'dashboard:sales_reports' %}" class="{% if request.resolver_match.url_name == 'sales_reports' %}active{% endif %}">📈 Reports</a>
     <a href="{% url 'dashboard:schedule_list' %}" class="{% if 'schedule' in request.resolver_match.url_name %}active{% endif %}">📍 Location Schedule</a>
     <a href="{% url 'dashboard:inventory_list' %}" class="{% if 'ingredient' in request.resolver_match.url_name or request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">📦 Inventory</a>
     <a href="{% url 'dashboard:menu_item_list' %}" class="{% if 'menu_item' in request.resolver_match.url_name %}active{% endif %}">🍕 Menu Items</a>
     <a href="{% url 'dashboard:category_list' %}" class="{% if 'category' in request.resolver_match.url_name %}active{% endif %}">🗂️ Categories</a>
+    {% if request.user.is_superuser %}
+      <a href="{% url 'dashboard:staff_user_list' %}" class="{% if 'staff_user' in request.resolver_match.url_name %}active{% endif %}">👤 Staff Accounts</a>
+    {% endif %}
     <a href="{% url 'core:home' %}">🌐 View Site</a>
     <a href="{% url 'dashboard:logout' %}">🚪 Log Out</a>
   </aside>

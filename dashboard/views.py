@@ -1,7 +1,7 @@
 from datetime import timedelta
 from decimal import Decimal
 
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
@@ -26,16 +26,25 @@ from core.security_utils import RateLimitMixin
 from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
+    StaffCreateForm, StaffEditForm, StaffSetPasswordForm, SaleEditForm,
 )
+
+User = get_user_model()
 
 # URL name constants to avoid duplication
 CATEGORY_LIST_URL = 'dashboard:category_list'
 INVENTORY_LIST_URL = 'dashboard:inventory_list'
 SCHEDULE_LIST_URL = 'dashboard:schedule_list'
+SALES_HISTORY_URL = 'dashboard:sales_history'
+STAFF_USER_LIST_URL = 'dashboard:staff_user_list'
 
 
 def is_staff_user(user):
     return user.is_active and user.is_staff
+
+
+def is_superuser(user):
+    return user.is_active and user.is_superuser
 
 
 # OWASP #7: Rate limiting on login to prevent brute force attacks
@@ -409,3 +418,117 @@ def schedule_delete(request, pk):
         messages.success(request, f'Removed "{name}" from the schedule.')
         return redirect(SCHEDULE_LIST_URL)
     return render(request, 'dashboard/schedule_confirm_delete.html', {'stop': stop})
+
+
+# ------------------------------------------------------------ Sale editing
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def sale_detail(request, pk):
+    sale = get_object_or_404(Sale, pk=pk)
+    if request.method == 'POST':
+        form = SaleEditForm(request.POST, instance=sale)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Sale #{sale.pk} updated.')
+            return redirect(SALES_HISTORY_URL)
+    else:
+        form = SaleEditForm(instance=sale)
+    return render(request, 'dashboard/sale_detail.html', {'sale': sale, 'form': form})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def sale_void(request, pk):
+    """Delete a sale and restore the ingredients it used back to inventory."""
+    sale = get_object_or_404(Sale, pk=pk)
+    if request.method == 'POST':
+        for line in sale.line_items.all():
+            for recipe_line in line.menu_item.recipe:
+                ingredient = recipe_line.ingredient
+                restored = recipe_line.quantity_required * line.quantity
+                ingredient.quantity_on_hand += restored
+                ingredient.save(update_fields=['quantity_on_hand'])
+        sale_id = sale.pk
+        sale.delete()
+        messages.success(request, f'Sale #{sale_id} voided and inventory restored.')
+        return redirect(SALES_HISTORY_URL)
+    return render(request, 'dashboard/sale_confirm_void.html', {'sale': sale})
+
+
+# ------------------------------------------------------------- Staff accounts
+# Superuser-only: fully replaces the need for Django admin's user management.
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_superuser, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def staff_user_list(request):
+    staff_users = User.objects.filter(is_staff=True).order_by('username')
+    return render(request, 'dashboard/staff_user_list.html', {'staff_users': staff_users})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_superuser, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def staff_user_create(request):
+    if request.method == 'POST':
+        form = StaffCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'Staff account "{user.username}" created.')
+            return redirect(STAFF_USER_LIST_URL)
+    else:
+        form = StaffCreateForm()
+    return render(request, 'dashboard/staff_user_form.html', {'form': form, 'title': 'Add Staff Account'})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_superuser, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def staff_user_edit(request, pk):
+    staff_member = get_object_or_404(User, pk=pk, is_staff=True)
+    if request.method == 'POST':
+        form = StaffEditForm(request.POST, instance=staff_member)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Updated "{staff_member.username}".')
+            return redirect(STAFF_USER_LIST_URL)
+    else:
+        form = StaffEditForm(instance=staff_member)
+    return render(request, 'dashboard/staff_user_form.html', {
+        'form': form, 'title': f'Edit {staff_member.username}', 'staff_member': staff_member,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_superuser, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def staff_user_set_password(request, pk):
+    staff_member = get_object_or_404(User, pk=pk, is_staff=True)
+    if request.method == 'POST':
+        form = StaffSetPasswordForm(staff_member, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Password updated for "{staff_member.username}".')
+            return redirect(STAFF_USER_LIST_URL)
+    else:
+        form = StaffSetPasswordForm(staff_member)
+    return render(request, 'dashboard/staff_user_password_form.html', {'form': form, 'staff_member': staff_member})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_superuser, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def staff_user_delete(request, pk):
+    staff_member = get_object_or_404(User, pk=pk, is_staff=True)
+    if staff_member == request.user:
+        messages.error(request, "You can't delete your own account while logged in as it.")
+        return redirect(STAFF_USER_LIST_URL)
+    if request.method == 'POST':
+        username = staff_member.username
+        staff_member.delete()
+        messages.success(request, f'Deleted staff account "{username}".')
+        return redirect(STAFF_USER_LIST_URL)
+    return render(request, 'dashboard/staff_user_confirm_delete.html', {'staff_member': staff_member})

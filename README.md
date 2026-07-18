@@ -113,6 +113,19 @@ manual map link, then a text search on the address.
    toggling needed (staff can still manually hide/"86" an item any time from
    Menu Items regardless of stock).
 
+## Staff workflow: update menu, prices, and photos
+
+1. Log in at **/staff/login/** with a staff account.
+2. Open **Menu Items** from the left sidebar.
+3. Click **+ Add Menu Item** to create a new item, or **Edit** on an existing one.
+4. Set or change the **Price** field, then upload an image using the **Image** field.
+5. Click **Save** to publish changes to the public menu.
+
+Notes:
+- Staff users (`is_staff=True`) can add, edit, and delete menu items from the dashboard.
+- Superusers can create additional staff accounts from **Staff Accounts**.
+- Uploaded images are validated for size/type and stored under `media/menu_items/`.
+
 ## Project structure
 
 ```

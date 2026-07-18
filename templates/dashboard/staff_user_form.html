@@ -1,0 +1,23 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}{{ title }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">{{ title }}</h1>
+
+<form method="post" style="max-width:480px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      {% if field.field.widget.input_type == 'checkbox' %}
+        <label style="display:flex; align-items:center; gap:8px; font-weight:700;">{{ field }} {{ field.label }}</label>
+      {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      {% endif %}
+      {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{% url 'dashboard:staff_user_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}
