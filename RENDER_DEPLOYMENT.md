@@ -134,6 +134,12 @@ python manage.py collectstatic
 # Check Django setup
 python manage.py check --deploy
 
+# Verify uploaded images referenced in DB actually exist on disk
+python manage.py verify_media_integrity
+
+# Same check, but fail with non-zero exit code if any files are missing
+python manage.py verify_media_integrity --fail-on-missing
+
 # View logs
 tail -f logs/django.log
 tail -f logs/security.log
