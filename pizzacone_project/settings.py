@@ -24,15 +24,17 @@ except ImportError:
     pass
 
 # SECURITY: Load sensitive values from environment variables
-SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure--ma@-z+1_21o=25%hw1z7vm#x6vau&7y0-9-ej!_=nsp!9wm5%'
-)
-if 'django-insecure-' in SECRET_KEY and os.environ.get('ENVIRONMENT') == 'production':
-    raise ValueError(
-        'SECRET_KEY must be set as an environment variable in production. '
-        'Generate a new secret key with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
-    )
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    if os.environ.get('ENVIRONMENT') == 'production':
+        raise ValueError(
+            'SECRET_KEY must be set as an environment variable in production. '
+            'Generate a new secret key with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
+        )
+    else:
+        # Development: Generate a temporary secret key if not set
+        import secrets
+        SECRET_KEY = secrets.token_urlsafe(50)
 
 # SECURITY: Debug must be False in production
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -168,16 +170,19 @@ SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_BROWSER_XSS_FILTER = True
+
+# CSP directives - use constant to avoid duplication
+_CSP_SELF = "'self'"
 SECURE_CONTENT_SECURITY_POLICY = {
-    'default-src': ["'self'"],
-    'script-src': ["'self'", "'unsafe-inline'"],  # Consider removing unsafe-inline
-    'style-src': ["'self'", "'unsafe-inline'"],
-    'img-src': ["'self'", 'data:', 'https:'],
-    'font-src': ["'self'"],
-    'connect-src': ["'self'"],
+    'default-src': [_CSP_SELF],
+    'script-src': [_CSP_SELF, "'unsafe-inline'"],  # Consider removing unsafe-inline
+    'style-src': [_CSP_SELF, "'unsafe-inline'"],
+    'img-src': [_CSP_SELF, 'data:', 'https:'],
+    'font-src': [_CSP_SELF],
+    'connect-src': [_CSP_SELF],
     'frame-ancestors': ["'none'"],
-    'base-uri': ["'self'"],
-    'form-action': ["'self'"],
+    'base-uri': [_CSP_SELF],
+    'form-action': [_CSP_SELF],
 }
 X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking
 X_CONTENT_TYPE_OPTIONS = 'nosniff'
@@ -187,7 +192,6 @@ X_CONTENT_TYPE_OPTIONS = 'nosniff'
 
 # OWASP #7: Identification and Authentication Failures
 PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
-AUTH_PASSWORD_VALIDATORS = AUTH_PASSWORD_VALIDATORS  # Already defined above
 
 # Authentication backends for additional security
 AUTHENTICATION_BACKENDS = [

@@ -8,7 +8,16 @@ from django.contrib import messages
 from django.db.models import Sum, Count, F
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django_ratelimit.decorators import ratelimit
+from django.views.decorators.http import require_http_methods
+
+try:
+    from django_ratelimit.decorators import ratelimit
+except ImportError:
+    # Fallback if django_ratelimit is not installed
+    def ratelimit(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
 
 from menu.models import Category, MenuItem, Ingredient
 from sales.models import Sale, SaleLineItem
@@ -18,6 +27,11 @@ from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
 )
+
+# URL name constants to avoid duplication
+CATEGORY_LIST_URL = 'dashboard:category_list'
+INVENTORY_LIST_URL = 'dashboard:inventory_list'
+SCHEDULE_LIST_URL = 'dashboard:schedule_list'
 
 
 def is_staff_user(user):
@@ -40,6 +54,7 @@ def staff_login(request):
     return render(request, 'dashboard/login.html', {'form': form})
 
 
+@require_http_methods(["GET", "POST"])
 def staff_logout(request):
     logout(request)
     return redirect('core:home')
@@ -47,6 +62,7 @@ def staff_logout(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def dashboard_home(request):
     today = timezone.localdate()
     today_sales = Sale.objects.filter(created_at__date=today)
@@ -75,6 +91,7 @@ def dashboard_home(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def menu_item_list(request):
     items = MenuItem.objects.select_related('category').all()
     return render(request, 'dashboard/menu_item_list.html', {'items': items})
@@ -82,6 +99,7 @@ def menu_item_list(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def menu_item_create(request):
     if request.method == 'POST':
         form = MenuItemForm(request.POST, request.FILES)
@@ -96,6 +114,7 @@ def menu_item_create(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def menu_item_edit(request, pk):
     item = get_object_or_404(MenuItem, pk=pk)
     if request.method == 'POST':
@@ -116,6 +135,7 @@ def menu_item_edit(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def menu_item_delete(request, pk):
     item = get_object_or_404(MenuItem, pk=pk)
     if request.method == 'POST':
@@ -130,6 +150,7 @@ def menu_item_delete(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def category_list(request):
     categories = Category.objects.all()
     return render(request, 'dashboard/category_list.html', {'categories': categories})
@@ -137,13 +158,14 @@ def category_list(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def category_create(request):
     if request.method == 'POST':
         form = CategoryForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'Category created.')
-            return redirect('dashboard:category_list')
+            return redirect(CATEGORY_LIST_URL)
     else:
         form = CategoryForm()
     return render(request, 'dashboard/category_form.html', {'form': form, 'title': 'Add Category'})
@@ -151,6 +173,7 @@ def category_create(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def category_edit(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
@@ -158,7 +181,7 @@ def category_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Category updated.')
-            return redirect('dashboard:category_list')
+            return redirect(CATEGORY_LIST_URL)
     else:
         form = CategoryForm(instance=category)
     return render(request, 'dashboard/category_form.html', {'form': form, 'title': f'Edit {category.name}'})
@@ -166,13 +189,14 @@ def category_edit(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == 'POST':
         name = category.name
         category.delete()
         messages.success(request, f'{name} deleted.')
-        return redirect('dashboard:category_list')
+        return redirect(CATEGORY_LIST_URL)
     return render(request, 'dashboard/category_confirm_delete.html', {'category': category})
 
 
@@ -180,6 +204,7 @@ def category_delete(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def inventory_list(request):
     ingredients = Ingredient.objects.all().order_by('quantity_on_hand')
     return render(request, 'dashboard/inventory_list.html', {'ingredients': ingredients})
@@ -187,13 +212,14 @@ def inventory_list(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def ingredient_create(request):
     if request.method == 'POST':
         form = IngredientForm(request.POST)
         if form.is_valid():
             form.save()
             messages.success(request, 'Ingredient added.')
-            return redirect('dashboard:inventory_list')
+            return redirect(INVENTORY_LIST_URL)
     else:
         form = IngredientForm()
     return render(request, 'dashboard/ingredient_form.html', {'form': form, 'title': 'Add Ingredient'})
@@ -201,6 +227,7 @@ def ingredient_create(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def ingredient_edit(request, pk):
     ingredient = get_object_or_404(Ingredient, pk=pk)
     if request.method == 'POST':
@@ -208,7 +235,7 @@ def ingredient_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, f'{ingredient.name} updated.')
-            return redirect('dashboard:inventory_list')
+            return redirect(INVENTORY_LIST_URL)
     else:
         form = IngredientForm(instance=ingredient)
     return render(request, 'dashboard/ingredient_form.html', {'form': form, 'title': f'Edit {ingredient.name}'})
@@ -216,18 +243,20 @@ def ingredient_edit(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def ingredient_delete(request, pk):
     ingredient = get_object_or_404(Ingredient, pk=pk)
     if request.method == 'POST':
         name = ingredient.name
         ingredient.delete()
         messages.success(request, f'{name} deleted.')
-        return redirect('dashboard:inventory_list')
+        return redirect(INVENTORY_LIST_URL)
     return render(request, 'dashboard/ingredient_confirm_delete.html', {'ingredient': ingredient})
 
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["POST"])
 def ingredient_restock(request, pk):
     ingredient = get_object_or_404(Ingredient, pk=pk)
     if request.method == 'POST':
@@ -236,13 +265,14 @@ def ingredient_restock(request, pk):
             ingredient.quantity_on_hand += form.cleaned_data['amount']
             ingredient.save(update_fields=['quantity_on_hand'])
             messages.success(request, f'Added {form.cleaned_data["amount"]} {ingredient.get_unit_display()} to {ingredient.name}.')
-    return redirect('dashboard:inventory_list')
+    return redirect(INVENTORY_LIST_URL)
 
 
 # --------------------------------------------------------------------- Sales
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def record_sale(request):
     items = MenuItem.objects.filter(is_available=True).select_related('category')
 
@@ -280,6 +310,7 @@ def record_sale(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def sales_history(request):
     sales = Sale.objects.prefetch_related('line_items').all()[:100]
     return render(request, 'dashboard/sales_history.html', {'sales': sales})
@@ -287,6 +318,7 @@ def sales_history(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def sales_reports(request):
     period = request.GET.get('period', 'today')
     today = timezone.localdate()
@@ -329,6 +361,7 @@ def sales_reports(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
 def schedule_list(request):
     stops = LocationStop.objects.all().order_by('date', 'start_time')
     return render(request, 'dashboard/schedule_list.html', {'stops': stops})
@@ -336,13 +369,14 @@ def schedule_list(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def schedule_create(request):
     if request.method == 'POST':
         form = LocationStopForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             messages.success(request, 'Stop added to the schedule.')
-            return redirect('dashboard:schedule_list')
+            return redirect(SCHEDULE_LIST_URL)
     else:
         form = LocationStopForm()
     return render(request, 'dashboard/schedule_form.html', {'form': form, 'title': 'Add a Stop'})
@@ -350,6 +384,7 @@ def schedule_create(request):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def schedule_edit(request, pk):
     stop = get_object_or_404(LocationStop, pk=pk)
     if request.method == 'POST':
@@ -357,7 +392,7 @@ def schedule_edit(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Stop updated.')
-            return redirect('dashboard:schedule_list')
+            return redirect(SCHEDULE_LIST_URL)
     else:
         form = LocationStopForm(instance=stop)
     return render(request, 'dashboard/schedule_form.html', {'form': form, 'title': f'Edit {stop.name}', 'stop': stop})
@@ -365,11 +400,12 @@ def schedule_edit(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
 def schedule_delete(request, pk):
     stop = get_object_or_404(LocationStop, pk=pk)
     if request.method == 'POST':
         name = stop.name
         stop.delete()
         messages.success(request, f'Removed "{name}" from the schedule.')
-        return redirect('dashboard:schedule_list')
+        return redirect(SCHEDULE_LIST_URL)
     return render(request, 'dashboard/schedule_confirm_delete.html', {'stop': stop})
