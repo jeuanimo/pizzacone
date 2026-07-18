@@ -44,8 +44,18 @@ db.sqlite3
 db.sqlite3-journal
 /media
 /static
+/staticfiles
 
 # Environment variables
 .env
 .env.local
 *.pem
+
+# Logs
+logs/
+*.log
+
+# Security
+*.key
+*.crt
+

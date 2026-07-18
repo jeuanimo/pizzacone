@@ -8,10 +8,12 @@ from django.contrib import messages
 from django.db.models import Sum, Count, F
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
 
 from menu.models import Category, MenuItem, Ingredient
 from sales.models import Sale, SaleLineItem
 from core.models import LocationStop
+from core.security_utils import RateLimitMixin
 from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
@@ -22,6 +24,8 @@ def is_staff_user(user):
     return user.is_active and user.is_staff
 
 
+# OWASP #7: Rate limiting on login to prevent brute force attacks
+@ratelimit(key='ip', rate='5/h', method='POST', block=True)
 def staff_login(request):
     if request.user.is_authenticated and is_staff_user(request.user):
         return redirect('dashboard:home')

@@ -1,6 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from core.security_utils import validate_file_upload
 
 
 class Category(models.Model):
@@ -45,6 +46,12 @@ class MenuItem(models.Model):
 
     def __str__(self):
         return self.name
+
+    def clean(self):
+        """OWASP #10: File upload validation."""
+        super().clean()
+        if self.image:
+            validate_file_upload(self.image)
 
     def save(self, *args, **kwargs):
         if not self.slug:

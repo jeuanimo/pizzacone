@@ -10,22 +10,40 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# SECURITY: Load sensitive values from environment variables
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure--ma@-z+1_21o=25%hw1z7vm#x6vau&7y0-9-ej!_=nsp!9wm5%'
+)
+if 'django-insecure-' in SECRET_KEY and os.environ.get('ENVIRONMENT') == 'production':
+    raise ValueError(
+        'SECRET_KEY must be set as an environment variable in production. '
+        'Generate a new secret key with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
+    )
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--ma@-z+1_21o=25%hw1z7vm#x6vau&7y0-9-ej!_=nsp!9wm5%'
+# SECURITY: Debug must be False in production
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# SECURITY: Configure allowed hosts
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1'
+).split(',')
 
-ALLOWED_HOSTS = []
+ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 
 
 # Application definition
@@ -53,6 +71,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Security: Add rate limiting middleware
+    'django_ratelimit.middleware.RatelimitMiddleware',
 ]
 
 ROOT_URLCONF = 'pizzacone_project.urls'
@@ -95,6 +115,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 12,  # OWASP recommends minimum 12 characters
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -103,6 +126,134 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+# ============================================================================
+# SECURITY HARDENING - OWASP Top 10
+# ============================================================================
+
+# OWASP #1: Broken Access Control
+# Session security
+SESSION_COOKIE_SECURE = ENVIRONMENT == 'production'  # Only send over HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access
+SESSION_COOKIE_SAMESITE = 'Strict'  # Prevent CSRF
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# OWASP #2: Cryptographic Failures & #3: Injection
+# CSRF Protection
+CSRF_COOKIE_SECURE = ENVIRONMENT == 'production'
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(',')
+
+# OWASP #4: Insecure Design & #5: Security Misconfiguration
+# HTTP Security Headers
+SECURE_SSL_REDIRECT = ENVIRONMENT == 'production'
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_SECURITY_POLICY = {
+    'default-src': ["'self'"],
+    'script-src': ["'self'", "'unsafe-inline'"],  # Consider removing unsafe-inline
+    'style-src': ["'self'", "'unsafe-inline'"],
+    'img-src': ["'self'", 'data:', 'https:'],
+    'font-src': ["'self'"],
+    'connect-src': ["'self'"],
+    'frame-ancestors': ["'none'"],
+    'base-uri': ["'self'"],
+    'form-action': ["'self'"],
+}
+X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking
+X_CONTENT_TYPE_OPTIONS = 'nosniff'
+
+# OWASP #6: Vulnerable and Outdated Components
+# Keep dependencies updated (see requirements.txt and regular security updates)
+
+# OWASP #7: Identification and Authentication Failures
+PASSWORD_RESET_TIMEOUT = 3600  # 1 hour
+AUTH_PASSWORD_VALIDATORS = AUTH_PASSWORD_VALIDATORS  # Already defined above
+
+# Authentication backends for additional security
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# OWASP #8: Software and Data Integrity Failures
+# Use signed cookies
+SESSION_COOKIE_SAMESITE = 'Strict'
+LANGUAGE_COOKIE_SAMESITE = 'Strict'
+LANGUAGE_COOKIE_SECURE = ENVIRONMENT == 'production'
+
+# OWASP #9: Logging and Monitoring Failures
+# Configure logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {asctime} {message}',
+            'style': '{',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse',
+        },
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'django.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+        'security': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': BASE_DIR / 'logs' / 'security.log',
+            'maxBytes': 1024 * 1024 * 10,  # 10MB
+            'backupCount': 10,
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': os.environ.get('LOG_LEVEL', 'INFO'),
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['security'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
+
+# Create logs directory if it doesn't exist
+os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# OWASP #10: Server-Side Request Forgery (SSRF)
+# Restrict allowed hosts and media serving
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5MB
+
+# Allowed file types for uploads
+ALLOWED_FILE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 # Internationalization
