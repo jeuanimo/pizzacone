@@ -42,7 +42,7 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 # SECURITY: Configure allowed hosts
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1'
+    'localhost,127.0.0.1,0.0.0.0'
 ).split(',')
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
