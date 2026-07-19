@@ -11,12 +11,26 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+import re
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 LOG_DIR = BASE_DIR / 'logs'
 LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _clean_credential(value):
+    """Strip all whitespace from env-provided credentials.
+
+    Gmail App Passwords are shown as 4 space-separated groups for
+    readability, and copy-pasting them (especially from a browser) can grab
+    a non-breaking space (U+00A0) instead of a plain one. Neither an app
+    password nor an email address legitimately contains whitespace, so
+    stripping all of it — not just leading/trailing — is safe and avoids a
+    cryptic UnicodeEncodeError deep inside imaplib/smtplib.
+    """
+    return re.sub(r'\s+', '', value) if value else value
 
 # Load environment variables from .env file
 try:
@@ -338,9 +352,9 @@ EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@pizzacone.local')
+EMAIL_HOST_USER = _clean_credential(os.environ.get('EMAIL_HOST_USER', ''))
+EMAIL_HOST_PASSWORD = _clean_credential(os.environ.get('EMAIL_HOST_PASSWORD', ''))
+DEFAULT_FROM_EMAIL = _clean_credential(os.environ.get('DEFAULT_FROM_EMAIL', '')) or EMAIL_HOST_USER or 'noreply@pizzacone.local'
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '20'))
 

@@ -650,7 +650,7 @@ def mailbox_inbox(request):
     inbox_messages = []
     mailbox_error = ''
     try:
-        inbox_messages = GmailClient().list_inbox_messages(limit=40)
+        inbox_messages = GmailClient().list_inbox_messages(limit=20)
     except Exception as exc:  # noqa: BLE001
         mailbox_error = str(exc)
 

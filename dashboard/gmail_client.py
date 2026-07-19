@@ -1,4 +1,5 @@
 import imaplib
+import re
 import smtplib
 from email import policy
 from email.header import decode_header
@@ -55,8 +56,13 @@ def _extract_preferred_body(email_message):
 
 class GmailClient:
     def __init__(self):
-        self.username = settings.EMAIL_HOST_USER
-        self.password = settings.EMAIL_HOST_PASSWORD
+        # Defense in depth: strip whitespace (including non-breaking spaces
+        # picked up from copy-pasting an app password) even though settings.py
+        # already cleans these — a raw \xa0 here causes an opaque
+        # UnicodeEncodeError deep inside imaplib/smtplib instead of a clear
+        # login failure.
+        self.username = re.sub(r'\s+', '', settings.EMAIL_HOST_USER or '')
+        self.password = re.sub(r'\s+', '', settings.EMAIL_HOST_PASSWORD or '')
         self.imap_host = getattr(settings, 'GMAIL_IMAP_HOST', 'imap.gmail.com')
         self.imap_port = int(getattr(settings, 'GMAIL_IMAP_PORT', 993))
         self.smtp_host = settings.EMAIL_HOST
@@ -67,7 +73,11 @@ class GmailClient:
             raise ValueError('Gmail credentials are not configured. Set EMAIL_HOST_USER and EMAIL_HOST_PASSWORD.')
 
     def _imap_connect(self):
-        imap_conn = imaplib.IMAP4_SSL(self.imap_host, self.imap_port)
+        # A timeout is essential here — without one, a network hiccup or
+        # Gmail throttling hangs the connection indefinitely, which outlasts
+        # gunicorn's worker timeout and surfaces to the user as a bare 502
+        # instead of a clean, catchable error.
+        imap_conn = imaplib.IMAP4_SSL(self.imap_host, self.imap_port, timeout=self.email_timeout)
         imap_conn.login(self.username, self.password)
         return imap_conn
 
