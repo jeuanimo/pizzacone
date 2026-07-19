@@ -24,15 +24,20 @@ except ImportError:
     pass
 
 # SECURITY: Load sensitive values from environment variables
+def _is_strong_secret_key(value):
+    return bool(value) and len(value) >= 50 and not value.startswith('django-insecure-') and len(set(value)) >= 5
+
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
-if not SECRET_KEY:
-    if os.environ.get('ENVIRONMENT') == 'production':
+if os.environ.get('ENVIRONMENT') == 'production':
+    if not _is_strong_secret_key(SECRET_KEY):
         raise ValueError(
-            'SECRET_KEY must be set as an environment variable in production. '
+            'SECRET_KEY must be set as a strong environment variable in production. '
             'Generate a new secret key with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
         )
-    else:
-        # Development: Generate a temporary secret key if not set
+else:
+    if not _is_strong_secret_key(SECRET_KEY):
+        # Development: ignore weak or missing values so local checks stay clean.
         import secrets
         SECRET_KEY = secrets.token_urlsafe(50)
 
