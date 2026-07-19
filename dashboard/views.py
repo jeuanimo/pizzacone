@@ -24,12 +24,13 @@ except ImportError:
 from menu.models import Category, MenuItem, Ingredient
 from menu.csv_import import import_menu_items_csv
 from sales.models import Sale, SaleLineItem
-from core.models import LocationStop, VenueRequest
+from core.models import LocationStop, VenueRequest, SiteText, ContactMessage
 from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
     StaffCreateForm, StaffEditForm, StaffSetPasswordForm, SaleEditForm,
     VenueRequestUpdateForm, GmailComposeForm, MenuItemCSVImportForm,
+    SiteTextForm, ContactMessageUpdateForm,
 )
 from .gmail_client import GmailClient
 
@@ -222,6 +223,64 @@ def menu_item_delete(request, pk):
         messages.success(request, f'{name} deleted.')
         return redirect('dashboard:menu_item_list')
     return render(request, 'dashboard/menu_item_confirm_delete.html', {'item': item})
+
+
+# ------------------------------------------------------------------ Site Text
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def site_text_list(request):
+    blocks = SiteText.objects.all()
+    return render(request, 'dashboard/site_text_list.html', {'blocks': blocks})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def site_text_create(request):
+    if request.method == 'POST':
+        form = SiteTextForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Site text block created.')
+            return redirect('dashboard:site_text_list')
+    else:
+        form = SiteTextForm()
+    return render(request, 'dashboard/site_text_form.html', {'form': form, 'title': 'Add Site Text Block'})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def site_text_edit(request, pk):
+    block = get_object_or_404(SiteText, pk=pk)
+    if request.method == 'POST':
+        form = SiteTextForm(request.POST, instance=block)
+        form.fields['key'].disabled = True
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'"{block.label}" updated.')
+            return redirect('dashboard:site_text_list')
+    else:
+        form = SiteTextForm(instance=block)
+        form.fields['key'].disabled = True
+    return render(request, 'dashboard/site_text_form.html', {
+        'form': form, 'title': f'Edit "{block.label}"', 'block': block,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def site_text_delete(request, pk):
+    block = get_object_or_404(SiteText, pk=pk)
+    if request.method == 'POST':
+        label = block.label
+        block.delete()
+        messages.success(request, f'"{label}" deleted — that spot on the site will show its default wording again.')
+        return redirect('dashboard:site_text_list')
+    return render(request, 'dashboard/site_text_confirm_delete.html', {'block': block})
 
 
 # ------------------------------------------------------------------ Categories
@@ -520,6 +579,60 @@ def venue_calendar(request):
         'next_month': next_month,
         'today': today,
     })
+
+
+# ------------------------------------------------------------ Contact Messages
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def contact_message_list(request):
+    reason_filter = request.GET.get('reason', '').strip()
+    contact_messages = ContactMessage.objects.all()
+    if reason_filter:
+        contact_messages = contact_messages.filter(reason=reason_filter)
+
+    return render(request, 'dashboard/contact_message_list.html', {
+        'contact_messages': contact_messages,
+        'reason_filter': reason_filter,
+        'reason_choices': ContactMessage.REASON_CHOICES,
+        'unread_count': ContactMessage.objects.filter(is_read=False).count(),
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def contact_message_detail(request, pk):
+    contact_message = get_object_or_404(ContactMessage, pk=pk)
+    if request.method == 'POST':
+        form = ContactMessageUpdateForm(request.POST, instance=contact_message)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Contact message updated.')
+            return redirect('dashboard:contact_message_list')
+    else:
+        if not contact_message.is_read:
+            contact_message.is_read = True
+            contact_message.save(update_fields=['is_read'])
+        form = ContactMessageUpdateForm(instance=contact_message)
+
+    return render(request, 'dashboard/contact_message_detail.html', {
+        'form': form,
+        'contact_message': contact_message,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def contact_message_delete(request, pk):
+    contact_message = get_object_or_404(ContactMessage, pk=pk)
+    if request.method == 'POST':
+        contact_message.delete()
+        messages.success(request, 'Contact message deleted.')
+        return redirect('dashboard:contact_message_list')
+    return render(request, 'dashboard/contact_message_confirm_delete.html', {'contact_message': contact_message})
 
 
 def _quote_body_for_reply(original_message):

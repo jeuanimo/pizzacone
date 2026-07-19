@@ -5,9 +5,21 @@ from django.forms import inlineformset_factory
 
 from menu.models import Category, MenuItem, Ingredient, MenuItemIngredient
 from sales.models import Sale
-from core.models import LocationStop, VenueRequest
+from core.models import LocationStop, VenueRequest, SiteText, ContactMessage
 
 User = get_user_model()
+
+
+class SiteTextForm(forms.ModelForm):
+    class Meta:
+        model = SiteText
+        fields = ['key', 'label', 'section', 'content']
+        widgets = {
+            'key': forms.TextInput(attrs={'class': 'form-input'}),
+            'label': forms.TextInput(attrs={'class': 'form-input'}),
+            'section': forms.Select(attrs={'class': 'form-input'}),
+            'content': forms.Textarea(attrs={'rows': 6, 'class': 'form-input'}),
+        }
 
 
 class MenuItemForm(forms.ModelForm):
@@ -182,6 +194,15 @@ class SaleEditForm(forms.ModelForm):
         widgets = {
             'payment_method': forms.Select(attrs={'class': 'form-input'}),
             'note': forms.TextInput(attrs={'class': 'form-input'}),
+        }
+
+
+class ContactMessageUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ContactMessage
+        fields = ['is_read', 'staff_notes']
+        widgets = {
+            'staff_notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 4, 'placeholder': 'Internal notes for staff only'}),
         }
 
 

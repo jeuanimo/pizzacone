@@ -14,6 +14,11 @@ urlpatterns = [
     path('menu-items/<int:pk>/edit/', views.menu_item_edit, name='menu_item_edit'),
     path('menu-items/<int:pk>/delete/', views.menu_item_delete, name='menu_item_delete'),
 
+    path('site-text/', views.site_text_list, name='site_text_list'),
+    path('site-text/add/', views.site_text_create, name='site_text_create'),
+    path('site-text/<int:pk>/edit/', views.site_text_edit, name='site_text_edit'),
+    path('site-text/<int:pk>/delete/', views.site_text_delete, name='site_text_delete'),
+
     path('categories/', views.category_list, name='category_list'),
     path('categories/add/', views.category_create, name='category_create'),
     path('categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
@@ -41,6 +46,10 @@ urlpatterns = [
     path('schedule/add/', views.schedule_create, name='schedule_create'),
     path('schedule/<int:pk>/edit/', views.schedule_edit, name='schedule_edit'),
     path('schedule/<int:pk>/delete/', views.schedule_delete, name='schedule_delete'),
+
+    path('contact-messages/', views.contact_message_list, name='contact_message_list'),
+    path('contact-messages/<int:pk>/', views.contact_message_detail, name='contact_message_detail'),
+    path('contact-messages/<int:pk>/delete/', views.contact_message_delete, name='contact_message_delete'),
 
     path('venue-requests/', views.venue_request_list, name='venue_request_list'),
     path('venue-requests/<int:pk>/edit/', views.venue_request_edit, name='venue_request_edit'),

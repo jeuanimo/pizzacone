@@ -27,6 +27,7 @@
         <a href="{% url 'core:home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
         <a href="{% url 'menu:menu_list' %}">Menu</a>
         <a href="{% url 'core:about' %}">About</a>
+        <a href="{% url 'core:contact' %}" class="{% if request.resolver_match.url_name == 'contact' %}active{% endif %}">Contact</a>
         <a href="{% url 'core:visit' %}" class="cart-pill">📍 Find Us</a>
         {% if request.user.is_authenticated and request.user.is_staff %}
           <a href="{% url 'dashboard:home' %}" title="Staff Dashboard">🔒 Dashboard</a>
@@ -59,11 +60,11 @@
         </div>
         <div>
           <h4>Visit Us</h4>
-          <p>Hot & fresh, made to order.<br>Easy to hold. Hard to put down.</p>
+          <p>{{ site_text.footer_visit_blurb|default:"Hot & fresh, made to order.\nEasy to hold. Hard to put down."|linebreaksbr }}</p>
         </div>
         <div>
           <h4>Contact</h4>
-          <p>(555) 123-4663<br>Grab it. Love it. Repeat.</p>
+          <p>{{ site_text.contact_phone|default:"618-593-9237" }}<br>{{ site_text.contact_tagline|default:"Grab it. Love it. Repeat." }}</p>
         </div>
         <div>
           <h4>Follow</h4>

@@ -32,6 +32,10 @@ services:
         value: "True"
       - key: EMAIL_TIMEOUT
         value: "20"
+      - key: GMAIL_IMAP_HOST
+        value: imap.gmail.com
+      - key: GMAIL_IMAP_PORT
+        value: "993"
       - key: EMAIL_HOST_USER
         sync: false
       - key: EMAIL_HOST_PASSWORD

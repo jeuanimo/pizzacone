@@ -1,6 +1,30 @@
 from django import forms
 
-from .models import VenueRequest
+from .models import VenueRequest, ContactMessage
+
+
+class ContactMessageForm(forms.ModelForm):
+    class Meta:
+        model = ContactMessage
+        fields = ['name', 'email', 'phone', 'reason', 'rating', 'message']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Your full name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'name@example.com'}),
+            'phone': forms.TextInput(attrs={'class': 'form-input', 'placeholder': '(555) 555-5555 (optional)'}),
+            'reason': forms.Select(attrs={'class': 'form-input'}),
+            'rating': forms.Select(
+                choices=[('', '—')] + [(n, f'{n} star{"s" if n != 1 else ""}') for n in range(1, 6)],
+                attrs={'class': 'form-input'},
+            ),
+            'message': forms.Textarea(attrs={'class': 'form-input', 'rows': 5, 'placeholder': 'How can we help?'}),
+        }
+
+    def clean_rating(self):
+        rating = self.cleaned_data.get('rating')
+        reason = self.data.get('reason')
+        if rating and reason != ContactMessage.REASON_REVIEW:
+            return None
+        return rating
 
 
 class VenueRequestForm(forms.ModelForm):

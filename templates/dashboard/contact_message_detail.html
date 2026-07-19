@@ -1,0 +1,33 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Contact Message from {{ contact_message.name }} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Message from {{ contact_message.name }}</h1>
+
+<div class="confirmation-box" style="text-align:left; max-width:640px;">
+  <p><strong>Reason:</strong> {{ contact_message.get_reason_display }}{% if contact_message.rating %} — {{ contact_message.rating }} star{{ contact_message.rating|pluralize }}{% endif %}</p>
+  <p><strong>Email:</strong> <a href="mailto:{{ contact_message.email }}">{{ contact_message.email }}</a></p>
+  {% if contact_message.phone %}<p><strong>Phone:</strong> {{ contact_message.phone }}</p>{% endif %}
+  <p><strong>Received:</strong> {{ contact_message.created_at|date:"M j, Y g:i A" }}</p>
+  <hr style="border:0; border-top:1px solid #eee; margin:14px 0;">
+  <p style="white-space:pre-line;">{{ contact_message.message }}</p>
+</div>
+
+<form method="post" style="max-width:640px; margin-top:20px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      {% if field.name == 'is_read' %}
+        <label>{{ field }} {{ field.label }}</label>
+      {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      {% endif %}
+      {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a href="{% url 'dashboard:contact_message_list' %}" class="btn btn-outline">Back to List</a>
+  <a href="{% url 'dashboard:contact_message_delete' contact_message.pk %}" class="btn btn-danger">Delete</a>
+</form>
+{% endblock %}

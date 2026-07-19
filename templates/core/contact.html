@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Contact — The Pizza Cone Co.{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container" style="max-width:640px;">
+    <h1 class="section-title">Contact Us</h1>
+    <p class="section-subtitle">
+      Questions, feedback, or want us at your next event? Send us a message and pick whichever fits best below.
+    </p>
+
+    <div class="confirmation-box" style="text-align:left; max-width:none;">
+      <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="form-errors">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-group">
+          <label for="{{ form.reason.id_for_label }}">What's this about?</label>
+          {{ form.reason }}
+          {% if form.reason.errors %}<div class="form-errors">{{ form.reason.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.name.id_for_label }}">Name</label>
+          {{ form.name }}
+          {% if form.name.errors %}<div class="form-errors">{{ form.name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.email.id_for_label }}">Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="form-errors">{{ form.email.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.phone.id_for_label }}">Phone (optional)</label>
+          {{ form.phone }}
+          {% if form.phone.errors %}<div class="form-errors">{{ form.phone.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.rating.id_for_label }}">Rating (only if leaving a review)</label>
+          {{ form.rating }}
+          {% if form.rating.errors %}<div class="form-errors">{{ form.rating.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.message.id_for_label }}">Message</label>
+          {{ form.message }}
+          {% if form.message.errors %}<div class="form-errors">{{ form.message.errors }}</div>{% endif %}
+        </div>
+
+        <p style="color:var(--pc-gray); font-size:0.85rem;">
+          Already know the date and venue for your event? Skip ahead to the
+          <a href="{% url 'core:visit' %}">full venue request form</a> on our Find Us page.
+        </p>
+
+        <button type="submit" class="btn btn-primary">Send Message</button>
+      </form>
+    </div>
+
+    <div class="confirmation-box" style="text-align:left; margin-top:20px;">
+      <h3 style="margin-top:0; color:var(--pc-red);">📞 Prefer to call?</h3>
+      <p>{{ site_text.contact_phone|default:store_phone }}</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

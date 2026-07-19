@@ -9,17 +9,12 @@
       <img src="{% static 'images/staff-photo.png' %}" alt="Our team" style="border-radius:14px; box-shadow:var(--shadow);">
     </div>
     <div style="flex:2; min-width:280px;">
-      <h1 class="section-title" style="text-align:left;">About The Pizza Cone Co.</h1>
+      <h1 class="section-title" style="text-align:left;">{{ site_text.about_heading|default:"About The Pizza Cone Co." }}</h1>
       <p style="font-size:1.05rem; color:var(--pc-gray);">
-        We took everything you love about pizza and made it portable. Every Pizza Cone
-        is hot, fresh, and made to order — hand-loaded with melted mozzarella and your
-        favorite toppings, baked right into a crispy, edible cone. No plate, no fork,
-        no mess. Just grab it, love it, and repeat.
+        {{ site_text.about_paragraph_1|default:"We took everything you love about pizza and made it portable. Every Pizza Cone is hot, fresh, and made to order — hand-loaded with melted mozzarella and your favorite toppings, baked right into a crispy, edible cone. No plate, no fork, no mess. Just grab it, love it, and repeat."|linebreaksbr }}
       </p>
       <p style="font-size:1.05rem; color:var(--pc-gray);">
-        Whether you're craving Cheese, Pepperoni, Italian Sausage, Veggie, or our
-        Meat Lovers cone, we've got a flavor for everyone — plus a Frozen Lemonade
-        with real strawberries to wash it down.
+        {{ site_text.about_paragraph_2|default:"Whether you're craving Cheese, Pepperoni, Italian Sausage, Veggie, or our Meat Lovers cone, we've got a flavor for everyone — plus a Frozen Lemonade with real strawberries to wash it down."|linebreaksbr }}
       </p>
       <a href="{% url 'menu:menu_list' %}" class="btn btn-primary">View Menu</a>
       <a href="{% url 'core:visit' %}" class="btn btn-outline">Find Us</a>

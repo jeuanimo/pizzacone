@@ -164,6 +164,8 @@ tail -f logs/security.log
 | `EMAIL_HOST_USER` | your Gmail address | Store in Render dashboard as secret |
 | `EMAIL_HOST_PASSWORD` | Gmail app password | Use app password, not account password |
 | `DEFAULT_FROM_EMAIL` | same as `EMAIL_HOST_USER` | Sender used by Django mail |
+| `GMAIL_IMAP_HOST` | `imap.gmail.com` | For the staff dashboard's mailbox (reading mail) |
+| `GMAIL_IMAP_PORT` | `993` | IMAP-over-SSL port |
 
 ## File Structure for Render
 

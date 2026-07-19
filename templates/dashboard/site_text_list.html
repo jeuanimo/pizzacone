@@ -1,0 +1,41 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Site Text — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Site Text</h1>
+  <a href="{% url 'dashboard:site_text_create' %}" class="btn btn-primary">+ Add Text Block</a>
+</div>
+<p style="color:var(--pc-gray); font-size:0.9rem; max-width:640px;">
+  Edit the copy shown on the public site — homepage, About, Find Us, footer, and contact info.
+  Deleting a block just reverts that spot back to its original wording.
+</p>
+
+<table class="data-table">
+  <thead>
+    <tr>
+      <th>Section</th>
+      <th>Label</th>
+      <th>Preview</th>
+      <th>Updated</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for block in blocks %}
+      <tr>
+        <td>{{ block.get_section_display }}</td>
+        <td>{{ block.label }}</td>
+        <td>{{ block.content|truncatechars:60 }}</td>
+        <td>{{ block.updated_at|date:"M j, Y" }}</td>
+        <td style="display:flex; gap:6px;">
+          <a href="{% url 'dashboard:site_text_edit' block.pk %}" class="btn btn-outline btn-sm">Edit</a>
+          <a href="{% url 'dashboard:site_text_delete' block.pk %}" class="btn btn-danger btn-sm">Delete</a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No site text blocks yet. <a href="{% url 'dashboard:site_text_create' %}">Add one</a>.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

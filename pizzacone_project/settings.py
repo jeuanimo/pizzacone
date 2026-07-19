@@ -100,6 +100,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.site_text',
             ],
         },
     },
@@ -322,7 +323,7 @@ LOGOUT_REDIRECT_URL = 'core:home'
 
 # The Pizza Cone Co. — business settings
 STORE_NAME = 'The Pizza Cone Co.'
-STORE_PHONE = '(555) 123-4663'
+STORE_PHONE = '618-593-9237'
 STORE_ADDRESS = '123 Main Street, Anytown, USA'
 STORE_HOURS = 'Mon–Sat: 11am–9pm  |  Sun: 12pm–7pm'
 
@@ -342,3 +343,8 @@ EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@pizzacone.local')
 SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
 EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '20'))
+
+# IMAP settings for the staff dashboard's Gmail mailbox feature (reads mail,
+# separate from the EMAIL_* settings above which Django uses for sending).
+GMAIL_IMAP_HOST = os.environ.get('GMAIL_IMAP_HOST', 'imap.gmail.com')
+GMAIL_IMAP_PORT = int(os.environ.get('GMAIL_IMAP_PORT', '993'))

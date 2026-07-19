@@ -6,7 +6,7 @@
 <section class="section">
   <div class="container">
     <h1 class="section-title">Find Us</h1>
-    <p class="section-subtitle">We move around — here's where to catch us.</p>
+    <p class="section-subtitle">{{ site_text.visit_subtitle|default:"We move around — here's where to catch us." }}</p>
 
     {% if todays_stop %}
       <div class="confirmation-box" style="text-align:left; border:3px solid var(--pc-gold); margin-bottom:34px; max-width:none;">
@@ -67,7 +67,7 @@
 
     <div class="confirmation-box" style="text-align:left; margin-top:40px; max-width:none;">
       <h3 style="margin-top:0; color:var(--pc-red);">Bring Pizza Cone To Your Event</h3>
-      <p style="color:var(--pc-gray);">Fill this out and our staff will follow up with availability and next steps.</p>
+      <p style="color:var(--pc-gray);">{{ site_text.visit_event_blurb|default:"Fill this out and our staff will follow up with availability and next steps."|linebreaksbr }}</p>
 
       <form method="post" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
         {% csrf_token %}
@@ -150,9 +150,9 @@
 
     <div class="confirmation-box" style="text-align:left; margin-top:20px;">
       <h3 style="margin-top:0; color:var(--pc-red);">📞 Contact</h3>
-      <p>{{ store_phone }}</p>
+      <p>{{ site_text.contact_phone|default:store_phone }}</p>
       <h3 style="color:var(--pc-red);">⏰ Typical Hours</h3>
-      <p>{{ store_hours }}</p>
+      <p>{{ site_text.contact_hours|default:store_hours }}</p>
     </div>
   </div>
 </section>

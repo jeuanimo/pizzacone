@@ -12,8 +12,8 @@
     <a href="https://www.facebook.com/share/1Eds6fPkQd/" target="_blank" rel="noopener" class="hero-social-link hero-social-facebook" aria-label="Follow us on Facebook"></a>
   </div>
   <div class="hero-cta">
-    <h1>All of the Flavor. None of the Mess.</h1>
-    <p>Hot, fresh pizza baked right into a crispy cone — made to order at our counter.</p>
+    <h1>{{ site_text.home_hero_title|default:"All of the Flavor. None of the Mess." }}</h1>
+    <p>{{ site_text.home_hero_subtitle|default:"Hot, fresh pizza baked right into a crispy cone — made to order at our counter."|linebreaksbr }}</p>
     <a href="{% url 'menu:menu_list' %}" class="btn btn-gold">See The Menu</a>
     <div class="hero-social-mobile">
       <a href="https://www.instagram.com/thepizzaconecompany" target="_blank" rel="noopener">Instagram</a>
@@ -89,8 +89,8 @@
 <section class="section" style="background:#fff;">
   <div class="container" style="display:flex; align-items:center; gap:40px; flex-wrap:wrap;">
     <div style="flex:1; min-width:260px;">
-      <h2 class="section-title" style="text-align:left;">New! Frozen Lemonade</h2>
-      <p style="color:var(--pc-gray); font-size:1.05rem;">Cool off with our frozen lemonade, topped with real strawberries. The perfect pair for your pizza cone.</p>
+      <h2 class="section-title" style="text-align:left;">{{ site_text.home_promo_title|default:"New! Frozen Lemonade" }}</h2>
+      <p style="color:var(--pc-gray); font-size:1.05rem;">{{ site_text.home_promo_body|default:"Cool off with our frozen lemonade, topped with real strawberries. The perfect pair for your pizza cone."|linebreaksbr }}</p>
       <a href="{% url 'menu:menu_list' %}" class="btn btn-primary">See Full Menu</a>
     </div>
     <div style="flex:1; min-width:260px; max-width:340px;">

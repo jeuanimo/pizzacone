@@ -1,0 +1,54 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Contact Messages — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Contact Messages{% if unread_count %} <span class="status-badge status-cancelled">{{ unread_count }} new</span>{% endif %}</h1>
+</div>
+
+<form method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:18px;">
+  <div>
+    <label for="reason" style="display:block; font-weight:700; margin-bottom:6px;">Filter by reason</label>
+    <select id="reason" name="reason" class="form-input">
+      <option value="">All reasons</option>
+      {% for value, label in reason_choices %}
+        <option value="{{ value }}" {% if reason_filter == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+  <a href="{% url 'dashboard:contact_message_list' %}" class="btn btn-outline btn-sm">Clear</a>
+</form>
+
+<table class="data-table">
+  <thead>
+    <tr><th>Received</th><th>From</th><th>Reason</th><th>Message</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for msg in contact_messages %}
+      <tr>
+        <td>{{ msg.created_at|date:"M j, Y g:i A" }}</td>
+        <td>
+          {{ msg.name }}<br>
+          <span style="color:var(--pc-gray); font-size:0.85rem;">{{ msg.email }}</span>
+        </td>
+        <td>
+          {{ msg.get_reason_display }}
+          {% if msg.rating %}<br><span style="color:var(--pc-gray); font-size:0.85rem;">{{ msg.rating }} star{{ msg.rating|pluralize }}</span>{% endif %}
+        </td>
+        <td>{{ msg.message|truncatechars:60 }}</td>
+        <td>
+          {% if msg.is_read %}
+            <span class="status-badge status-completed">Read</span>
+          {% else %}
+            <span class="status-badge status-cancelled">New</span>
+          {% endif %}
+        </td>
+        <td><a href="{% url 'dashboard:contact_message_detail' msg.pk %}" class="btn btn-outline btn-sm">Open</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No contact messages yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

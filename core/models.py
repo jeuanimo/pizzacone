@@ -67,6 +67,84 @@ class LocationStop(models.Model):
         return ''
 
 
+class SiteText(models.Model):
+    """An editable block of copy shown somewhere on the public site.
+
+    Templates look these up by `key` (see core.context_processors.site_text)
+    with a hardcoded fallback, so deleting a block just reverts that spot to
+    its original wording rather than leaving a blank gap.
+    """
+
+    SECTION_HOME = 'home'
+    SECTION_ABOUT = 'about'
+    SECTION_VISIT = 'visit'
+    SECTION_CONTACT = 'contact'
+    SECTION_FOOTER = 'footer'
+    SECTION_OTHER = 'other'
+
+    SECTION_CHOICES = [
+        (SECTION_HOME, 'Home Page'),
+        (SECTION_ABOUT, 'About Page'),
+        (SECTION_VISIT, 'Find Us Page'),
+        (SECTION_CONTACT, 'Contact Info'),
+        (SECTION_FOOTER, 'Footer'),
+        (SECTION_OTHER, 'Other'),
+    ]
+
+    key = models.SlugField(
+        max_length=80, unique=True,
+        help_text='Used by the site templates to find this text — changing it breaks the link to its spot on the site.',
+    )
+    label = models.CharField(max_length=150, help_text='Human-readable name shown here in the dashboard.')
+    section = models.CharField(max_length=20, choices=SECTION_CHOICES, default=SECTION_OTHER)
+    content = models.TextField(blank=True, help_text='Plain text — line breaks are preserved, no HTML needed.')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['section', 'label']
+        verbose_name = 'Site Text'
+        verbose_name_plural = 'Site Text'
+
+    def __str__(self):
+        return self.label
+
+
+class ContactMessage(models.Model):
+    """A message sent through the public Contact page — general inquiry,
+    review/comment, or a lightweight venue-stop request. (Full venue-booking
+    logistics still go through VenueRequest on the Find Us page.)
+    """
+
+    REASON_GENERAL = 'general'
+    REASON_REVIEW = 'review'
+    REASON_VENUE = 'venue'
+
+    REASON_CHOICES = [
+        (REASON_GENERAL, 'General Inquiry'),
+        (REASON_REVIEW, 'Review / Comment'),
+        (REASON_VENUE, 'Request a Venue Stop'),
+    ]
+
+    name = models.CharField(max_length=120)
+    email = models.EmailField()
+    phone = models.CharField(max_length=40, blank=True)
+    reason = models.CharField(max_length=20, choices=REASON_CHOICES, default=REASON_GENERAL)
+    rating = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        help_text='1–5 stars — only used for reviews.',
+    )
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    staff_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.get_reason_display()} from {self.name} ({self.created_at:%Y-%m-%d})'
+
+
 class VenueRequest(models.Model):
     STATUS_NEW = 'new'
     STATUS_IN_REVIEW = 'in_review'
