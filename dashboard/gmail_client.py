@@ -48,6 +48,16 @@ def _parse_list_response(raw_line):
     return flags, name
 
 
+def _quote_mailbox(name):
+    """IMAP SELECT requires mailbox names containing spaces or special
+    characters (e.g. Gmail's "[Gmail]/Sent Mail") to be quoted — imaplib
+    does not do this automatically, so an unquoted SELECT of such a name
+    comes back BAD ("Could not parse command").
+    """
+    escaped = name.replace('\\', '\\\\').replace('"', '\\"')
+    return f'"{escaped}"'
+
+
 def _extract_preferred_body(email_message):
     if email_message.is_multipart():
         for part in email_message.walk():
@@ -134,7 +144,7 @@ class GmailClient:
 
     def _find_folder_by_fallback_name(self, imap_conn, folder):
         for candidate in self._FALLBACK_NAMES.get(folder, []):
-            status, _ = imap_conn.select(candidate, readonly=True)
+            status, _ = imap_conn.select(_quote_mailbox(candidate), readonly=True)
             if status == 'OK':
                 return candidate
         return None
@@ -159,7 +169,7 @@ class GmailClient:
             mailbox_name = self._resolve_folder(imap_conn, folder)
             if not mailbox_name:
                 return []
-            status, _ = imap_conn.select(mailbox_name)
+            status, _ = imap_conn.select(_quote_mailbox(mailbox_name))
             if status != 'OK':
                 return []
             status, data = imap_conn.search(None, 'ALL')
@@ -197,7 +207,7 @@ class GmailClient:
     def read_message(self, uid, folder=FOLDER_INBOX):
         with self._imap_connect() as imap_conn:
             mailbox_name = self._resolve_folder(imap_conn, folder)
-            if not mailbox_name or imap_conn.select(mailbox_name)[0] != 'OK':
+            if not mailbox_name or imap_conn.select(_quote_mailbox(mailbox_name))[0] != 'OK':
                 raise ValueError(_FOLDER_OPEN_ERROR)
 
             status, fetch_data = imap_conn.fetch(uid.encode('utf-8'), '(RFC822 FLAGS)')
@@ -241,7 +251,7 @@ class GmailClient:
     def delete_message(self, uid, folder=FOLDER_INBOX):
         with self._imap_connect() as imap_conn:
             mailbox_name = self._resolve_folder(imap_conn, folder)
-            if not mailbox_name or imap_conn.select(mailbox_name)[0] != 'OK':
+            if not mailbox_name or imap_conn.select(_quote_mailbox(mailbox_name))[0] != 'OK':
                 raise ValueError(_FOLDER_OPEN_ERROR)
             imap_conn.store(uid.encode('utf-8'), '+FLAGS', '\\Deleted')
             imap_conn.expunge()
@@ -249,6 +259,6 @@ class GmailClient:
     def mark_unread(self, uid, folder=FOLDER_INBOX):
         with self._imap_connect() as imap_conn:
             mailbox_name = self._resolve_folder(imap_conn, folder)
-            if not mailbox_name or imap_conn.select(mailbox_name)[0] != 'OK':
+            if not mailbox_name or imap_conn.select(_quote_mailbox(mailbox_name))[0] != 'OK':
                 raise ValueError(_FOLDER_OPEN_ERROR)
             imap_conn.store(uid.encode('utf-8'), '-FLAGS', _SEEN_FLAG)
