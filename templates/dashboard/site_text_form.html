@@ -4,13 +4,19 @@
 {% block dashboard_content %}
 <h1 style="margin-top:0;">{{ title }}</h1>
 
+{% if text_block.description %}
+  <div class="confirmation-box" style="text-align:left; max-width:640px; margin:0 0 20px; padding:16px 20px; border-left:4px solid var(--pc-gold);">
+    <strong>📍 Where this appears:</strong> {{ text_block.description }}
+  </div>
+{% endif %}
+
 <form method="post" style="max-width:640px;">
   {% csrf_token %}
   {% for field in form %}
     <div class="form-group">
       <label for="{{ field.id_for_label }}">{{ field.label }}</label>
       {{ field }}
-      {% if field.name == 'key' and block %}
+      {% if field.name == 'key' and text_block %}
         <small style="color:var(--pc-gray);">The key can't be changed once a block is in use — it's how the site templates find this text.</small>
       {% elif field.help_text %}
         <small style="color:var(--pc-gray);">{{ field.help_text }}</small>

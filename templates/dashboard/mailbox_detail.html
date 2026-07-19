@@ -5,9 +5,9 @@
 <div class="table-toolbar">
   <h1 style="margin:0;">Read Email</h1>
   <div style="display:flex; gap:10px; flex-wrap:wrap;">
-    <a href="{% url 'dashboard:mailbox_reply' message_data.uid %}" class="btn btn-primary btn-sm">Reply</a>
+    <a href="{% url 'dashboard:mailbox_reply' message_data.uid %}{% if current_folder != 'inbox' %}?folder={{ current_folder }}{% endif %}" class="btn btn-primary btn-sm">Reply</a>
     <a href="{% url 'dashboard:mailbox_compose' %}?to={{ message_data.from_email|urlencode }}" class="btn btn-outline btn-sm">Compose New</a>
-    <a href="{% url 'dashboard:mailbox_inbox' %}" class="btn btn-outline btn-sm">Back</a>
+    <a href="{% url 'dashboard:mailbox_inbox' %}{% if current_folder != 'inbox' %}?folder={{ current_folder }}{% endif %}" class="btn btn-outline btn-sm">Back</a>
   </div>
 </div>
 
@@ -22,8 +22,16 @@
   <pre class="mail-body">{{ escaped_body }}</pre>
 </div>
 
-<form method="post" action="{% url 'dashboard:mailbox_delete' message_data.uid %}" onsubmit="return confirm('Delete this email?');">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-danger">Delete Email</button>
-</form>
+<div style="display:flex; gap:10px; flex-wrap:wrap;">
+  <form method="post" action="{% url 'dashboard:mailbox_delete' message_data.uid %}" onsubmit="return confirm('Delete this email?');">
+    {% csrf_token %}
+    <input type="hidden" name="folder" value="{{ current_folder }}">
+    <button type="submit" class="btn btn-danger">Delete Email</button>
+  </form>
+  <form method="post" action="{% url 'dashboard:mailbox_mark_unread' message_data.uid %}">
+    {% csrf_token %}
+    <input type="hidden" name="folder" value="{{ current_folder }}">
+    <button type="submit" class="btn btn-outline">Mark as Unread</button>
+  </form>
+</div>
 {% endblock %}

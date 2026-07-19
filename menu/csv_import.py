@@ -56,6 +56,36 @@ def _parse_int(value):
     return int(value) if value else None
 
 
+EXPORT_COLUMNS = [
+    'slug', 'name', 'category', 'price', 'description',
+    'image', 'calories', 'display_order', 'is_available', 'is_featured',
+]
+
+
+def export_menu_items_csv():
+    """Return the current menu items as CSV text, in the same column
+    layout `import_menu_items_csv` expects — so it can be downloaded,
+    edited, and re-uploaded as-is.
+    """
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=EXPORT_COLUMNS)
+    writer.writeheader()
+    for item in MenuItem.objects.select_related('category').order_by('category__display_order', 'display_order', 'name'):
+        writer.writerow({
+            'slug': item.slug,
+            'name': item.name,
+            'category': item.category.name,
+            'price': item.price,
+            'description': item.description,
+            'image': Path(item.image.name).name if item.image else '',
+            'calories': item.calories if item.calories is not None else '',
+            'display_order': item.display_order,
+            'is_available': 'yes' if item.is_available else 'no',
+            'is_featured': 'yes' if item.is_featured else 'no',
+        })
+    return buffer.getvalue()
+
+
 def import_menu_items_csv(csv_file, images_dir=None, overwrite_images=False):
     """Import/update menu items from a CSV file-like object or path.
 

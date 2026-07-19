@@ -13,11 +13,12 @@ User = get_user_model()
 class SiteTextForm(forms.ModelForm):
     class Meta:
         model = SiteText
-        fields = ['key', 'label', 'section', 'content']
+        fields = ['key', 'label', 'section', 'description', 'content']
         widgets = {
             'key': forms.TextInput(attrs={'class': 'form-input'}),
             'label': forms.TextInput(attrs={'class': 'form-input'}),
             'section': forms.Select(attrs={'class': 'form-input'}),
+            'description': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'e.g. "The headline at the top of the homepage"'}),
             'content': forms.Textarea(attrs={'rows': 6, 'class': 'form-input'}),
         }
 

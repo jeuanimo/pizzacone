@@ -96,6 +96,10 @@ class SiteText(models.Model):
         help_text='Used by the site templates to find this text — changing it breaks the link to its spot on the site.',
     )
     label = models.CharField(max_length=150, help_text='Human-readable name shown here in the dashboard.')
+    description = models.CharField(
+        max_length=255, blank=True,
+        help_text="Plain-English note on exactly where this shows up on the site, so it's easy to tell blocks apart.",
+    )
     section = models.CharField(max_length=20, choices=SECTION_CHOICES, default=SECTION_OTHER)
     content = models.TextField(blank=True, help_text='Plain text — line breaks are preserved, no HTML needed.')
     updated_at = models.DateTimeField(auto_now=True)

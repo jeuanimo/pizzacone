@@ -16,8 +16,8 @@
     <tr>
       <th>Section</th>
       <th>Label</th>
-      <th>Preview</th>
-      <th>Updated</th>
+      <th>Where it appears</th>
+      <th>Current text</th>
       <th></th>
     </tr>
   </thead>
@@ -26,8 +26,8 @@
       <tr>
         <td>{{ block.get_section_display }}</td>
         <td>{{ block.label }}</td>
+        <td style="color:var(--pc-gray); font-size:0.85rem;">{{ block.description|default:"—" }}</td>
         <td>{{ block.content|truncatechars:60 }}</td>
-        <td>{{ block.updated_at|date:"M j, Y" }}</td>
         <td style="display:flex; gap:6px;">
           <a href="{% url 'dashboard:site_text_edit' block.pk %}" class="btn btn-outline btn-sm">Edit</a>
           <a href="{% url 'dashboard:site_text_delete' block.pk %}" class="btn btn-danger btn-sm">Delete</a>

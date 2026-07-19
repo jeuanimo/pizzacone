@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.dashboard_home, name='home'),
 
     path('menu-items/', views.menu_item_list, name='menu_item_list'),
+    path('menu-items/export/', views.menu_item_export, name='menu_item_export'),
     path('menu-items/import/', views.menu_item_import, name='menu_item_import'),
     path('menu-items/add/', views.menu_item_create, name='menu_item_create'),
     path('menu-items/<int:pk>/edit/', views.menu_item_edit, name='menu_item_edit'),
@@ -60,4 +61,5 @@ urlpatterns = [
     path('mail/<str:uid>/', views.mailbox_message_detail, name='mailbox_message_detail'),
     path('mail/<str:uid>/reply/', views.mailbox_reply, name='mailbox_reply'),
     path('mail/<str:uid>/delete/', views.mailbox_delete, name='mailbox_delete'),
+    path('mail/<str:uid>/mark-unread/', views.mailbox_mark_unread, name='mailbox_mark_unread'),
 ]

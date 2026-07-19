@@ -7,6 +7,13 @@
   <a href="{% url 'dashboard:mailbox_compose' %}" class="btn btn-primary">Compose</a>
 </div>
 
+<div style="display:flex; gap:8px; margin-bottom:18px;">
+  {% for folder_key, folder_label in mailbox_folders %}
+    <a href="{% url 'dashboard:mailbox_inbox' %}{% if folder_key != 'inbox' %}?folder={{ folder_key }}{% endif %}"
+       class="btn btn-sm {% if current_folder == folder_key %}btn-primary{% else %}btn-outline{% endif %}">{{ folder_label }}</a>
+  {% endfor %}
+</div>
+
 {% if mailbox_error %}
   <ul class="messages">
     <li class="error">{{ mailbox_error }}</li>
@@ -29,10 +36,12 @@
           <td>{{ msg.from }}</td>
           <td>{{ msg.subject }}</td>
           <td>{% if msg.date %}{{ msg.date|date:"M d, Y g:i A" }}{% else %}—{% endif %}</td>
-          <td><a href="{% url 'dashboard:mailbox_message_detail' msg.uid %}" class="btn btn-outline btn-sm">Open</a></td>
+          <td>
+            <a href="{% url 'dashboard:mailbox_message_detail' msg.uid %}{% if current_folder != 'inbox' %}?folder={{ current_folder }}{% endif %}" class="btn btn-outline btn-sm">Open</a>
+          </td>
         </tr>
       {% empty %}
-        <tr><td colspan="5">Inbox is empty.</td></tr>
+        <tr><td colspan="5">{{ current_folder|capfirst }} is empty.</td></tr>
       {% endfor %}
     </tbody>
   </table>

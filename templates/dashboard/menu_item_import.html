@@ -9,6 +9,9 @@
   The <code>image</code> column is a filename (e.g. <code>cheese.jpg</code>) that must already exist in the app's
   <code>menu/seed_images/</code> folder.
 </p>
+<p style="max-width:640px;">
+  <a href="{% url 'dashboard:menu_item_export' %}" class="btn btn-outline btn-sm">Download current CSV</a>
+</p>
 
 <form method="post" enctype="multipart/form-data" style="max-width:640px;">
   {% csrf_token %}

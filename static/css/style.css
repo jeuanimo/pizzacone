@@ -453,6 +453,20 @@ img { max-width: 100%; display: block; }
   margin: 0 auto;
 }
 
+.mail-body {
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  max-width: 100%;
+  max-height: 60vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+}
+
 .order-number-badge {
   display: inline-block;
   background: var(--pc-gold);
@@ -575,7 +589,7 @@ img { max-width: 100%; display: block; }
 .stat-card .label { color: var(--pc-gray); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; }
 
 .data-table { width: 100%; border-collapse: collapse; background: #fff; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-.data-table th, .data-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #f0e7d0; }
+.data-table th, .data-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #f0e7d0; overflow-wrap: anywhere; }
 .data-table th { background: var(--pc-black); color: var(--pc-gold); font-size: 0.8rem; text-transform: uppercase; }
 .data-table tr:hover td { background: #fdf6e3; }
 

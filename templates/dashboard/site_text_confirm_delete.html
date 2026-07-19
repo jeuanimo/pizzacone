@@ -1,8 +1,8 @@
 {% extends "dashboard/_dashboard_base.html" %}
-{% block title %}Delete {{ block.label }} — Dashboard{% endblock %}
+{% block title %}Delete {{ text_block.label }} — Dashboard{% endblock %}
 
 {% block dashboard_content %}
-<h1 style="margin-top:0;">Delete "{{ block.label }}"?</h1>
+<h1 style="margin-top:0;">Delete "{{ text_block.label }}"?</h1>
 <p style="color:var(--pc-gray);">That spot on the site will revert to its original wording — it won't disappear.</p>
 <form method="post">
   {% csrf_token %}

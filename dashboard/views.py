@@ -9,6 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.db.models import Sum, Count, F
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
@@ -21,8 +22,10 @@ except ImportError:
             return func
         return decorator
 
+from django.http import HttpResponse
+
 from menu.models import Category, MenuItem, Ingredient
-from menu.csv_import import import_menu_items_csv
+from menu.csv_import import import_menu_items_csv, export_menu_items_csv
 from sales.models import Sale, SaleLineItem
 from core.models import LocationStop, VenueRequest, SiteText, ContactMessage
 from .forms import (
@@ -44,6 +47,24 @@ SALES_HISTORY_URL = 'dashboard:sales_history'
 STAFF_USER_LIST_URL = 'dashboard:staff_user_list'
 VENUE_REQUEST_LIST_URL = 'dashboard:venue_request_list'
 MAILBOX_INBOX_URL = 'dashboard:mailbox_inbox'
+MAILBOX_FOLDERS = [
+    (GmailClient.FOLDER_INBOX, 'Inbox'),
+    (GmailClient.FOLDER_SENT, 'Sent'),
+    (GmailClient.FOLDER_TRASH, 'Trash'),
+]
+_VALID_MAILBOX_FOLDERS = {key for key, _label in MAILBOX_FOLDERS}
+
+
+def _get_mailbox_folder(request):
+    folder = request.GET.get('folder') or request.POST.get('folder') or GmailClient.FOLDER_INBOX
+    return folder if folder in _VALID_MAILBOX_FOLDERS else GmailClient.FOLDER_INBOX
+
+
+def _mailbox_inbox_redirect(folder):
+    url = reverse(MAILBOX_INBOX_URL)
+    if folder != GmailClient.FOLDER_INBOX:
+        url = f'{url}?folder={folder}'
+    return redirect(url)
 
 
 def is_staff_user(user):
@@ -188,6 +209,15 @@ def menu_item_edit(request, pk):
 
 @login_required(login_url='dashboard:login')
 @user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def menu_item_export(request):
+    response = HttpResponse(export_menu_items_csv(), content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="menu_items.csv"'
+    return response
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
 @require_http_methods(["GET", "POST"])
 def menu_item_import(request):
     if request.method == 'POST':
@@ -266,7 +296,7 @@ def site_text_edit(request, pk):
         form = SiteTextForm(instance=block)
         form.fields['key'].disabled = True
     return render(request, 'dashboard/site_text_form.html', {
-        'form': form, 'title': f'Edit "{block.label}"', 'block': block,
+        'form': form, 'title': f'Edit "{block.label}"', 'text_block': block,
     })
 
 
@@ -280,7 +310,7 @@ def site_text_delete(request, pk):
         block.delete()
         messages.success(request, f'"{label}" deleted — that spot on the site will show its default wording again.')
         return redirect('dashboard:site_text_list')
-    return render(request, 'dashboard/site_text_confirm_delete.html', {'block': block})
+    return render(request, 'dashboard/site_text_confirm_delete.html', {'text_block': block})
 
 
 # ------------------------------------------------------------------ Categories
@@ -647,16 +677,19 @@ def _quote_body_for_reply(original_message):
 @user_passes_test(is_staff_user, login_url='dashboard:login')
 @require_http_methods(["GET"])
 def mailbox_inbox(request):
+    folder = _get_mailbox_folder(request)
     inbox_messages = []
     mailbox_error = ''
     try:
-        inbox_messages = GmailClient().list_inbox_messages(limit=20)
+        inbox_messages = GmailClient().list_messages(folder=folder, limit=20)
     except Exception as exc:  # noqa: BLE001
         mailbox_error = str(exc)
 
     return render(request, 'dashboard/mailbox_inbox.html', {
         'inbox_messages': inbox_messages,
         'mailbox_error': mailbox_error,
+        'current_folder': folder,
+        'mailbox_folders': MAILBOX_FOLDERS,
     })
 
 
@@ -664,15 +697,17 @@ def mailbox_inbox(request):
 @user_passes_test(is_staff_user, login_url='dashboard:login')
 @require_http_methods(["GET"])
 def mailbox_message_detail(request, uid):
+    folder = _get_mailbox_folder(request)
     try:
-        message_data = GmailClient().read_message(uid)
+        message_data = GmailClient().read_message(uid, folder=folder)
     except Exception as exc:  # noqa: BLE001
         messages.error(request, f'Unable to load email: {exc}')
-        return redirect(MAILBOX_INBOX_URL)
+        return _mailbox_inbox_redirect(folder)
 
     return render(request, 'dashboard/mailbox_detail.html', {
         'message_data': message_data,
         'escaped_body': escape(message_data.get('body', '')),
+        'current_folder': folder,
     })
 
 
@@ -689,7 +724,7 @@ def mailbox_compose(request):
                     subject=form.cleaned_data['subject'],
                     body=form.cleaned_data['body'],
                 )
-                messages.success(request, 'Email sent successfully.')
+                messages.success(request, f'Email sent successfully to {form.cleaned_data["to_email"]}.')
                 return redirect(MAILBOX_INBOX_URL)
             except Exception as exc:  # noqa: BLE001
                 messages.error(request, f'Email could not be sent: {exc}')
@@ -709,11 +744,12 @@ def mailbox_compose(request):
 @user_passes_test(is_staff_user, login_url='dashboard:login')
 @require_http_methods(["GET", "POST"])
 def mailbox_reply(request, uid):
+    folder = _get_mailbox_folder(request)
     try:
-        original_message = GmailClient().read_message(uid)
+        original_message = GmailClient().read_message(uid, folder=folder)
     except Exception as exc:  # noqa: BLE001
         messages.error(request, f'Unable to load email for reply: {exc}')
-        return redirect(MAILBOX_INBOX_URL)
+        return _mailbox_inbox_redirect(folder)
 
     default_subject = original_message.get('subject') or '(No subject)'
     if not default_subject.lower().startswith('re:'):
@@ -730,8 +766,11 @@ def mailbox_reply(request, uid):
                     in_reply_to=original_message.get('message_id') or None,
                     references=original_message.get('message_id') or None,
                 )
-                messages.success(request, 'Reply sent successfully.')
-                return redirect('dashboard:mailbox_message_detail', uid=uid)
+                messages.success(request, f'Reply sent successfully to {form.cleaned_data["to_email"]}.')
+                detail_url = reverse('dashboard:mailbox_message_detail', kwargs={'uid': uid})
+                if folder != GmailClient.FOLDER_INBOX:
+                    detail_url = f'{detail_url}?folder={folder}'
+                return redirect(detail_url)
             except Exception as exc:  # noqa: BLE001
                 messages.error(request, f'Reply could not be sent: {exc}')
     else:
@@ -747,6 +786,7 @@ def mailbox_reply(request, uid):
         'form': form,
         'is_reply': True,
         'reply_uid': uid,
+        'current_folder': folder,
     })
 
 
@@ -754,12 +794,26 @@ def mailbox_reply(request, uid):
 @user_passes_test(is_staff_user, login_url='dashboard:login')
 @require_http_methods(["POST"])
 def mailbox_delete(request, uid):
+    folder = _get_mailbox_folder(request)
     try:
-        GmailClient().delete_message(uid)
+        GmailClient().delete_message(uid, folder=folder)
         messages.success(request, 'Email deleted.')
     except Exception as exc:  # noqa: BLE001
         messages.error(request, f'Email could not be deleted: {exc}')
-    return redirect(MAILBOX_INBOX_URL)
+    return _mailbox_inbox_redirect(folder)
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["POST"])
+def mailbox_mark_unread(request, uid):
+    folder = _get_mailbox_folder(request)
+    try:
+        GmailClient().mark_unread(uid, folder=folder)
+        messages.success(request, 'Marked as unread.')
+    except Exception as exc:  # noqa: BLE001
+        messages.error(request, f'Could not mark as unread: {exc}')
+    return _mailbox_inbox_redirect(folder)
 
 
 @login_required(login_url='dashboard:login')
