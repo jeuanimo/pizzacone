@@ -10,6 +10,10 @@ services:
         value: False
       - key: ENVIRONMENT
         value: production
+      - key: ALLOWED_HOSTS
+        value: pizzacone.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://pizzacone.onrender.com
       - key: SECRET_KEY
         value: "ytd15w@kk0&)-6528h59+c7$qu5ok-@25&_vn8zmtfiys13_wy"
       - key: PYTHON_VERSION
