@@ -27,6 +27,24 @@ class MenuItemForm(forms.ModelForm):
         }
 
 
+class MenuItemCSVImportForm(forms.Form):
+    csv_file = forms.FileField(
+        label='CSV file',
+        widget=forms.ClearableFileInput(attrs={'class': 'form-input', 'accept': '.csv'}),
+        help_text='Columns: slug, name, category, price, description, image, calories, display_order, is_available, is_featured',
+    )
+    overwrite_images = forms.BooleanField(
+        label='Overwrite existing images', required=False,
+        help_text='Leave unchecked to only fill in images for items that don’t have one yet.',
+    )
+
+    def clean_csv_file(self):
+        f = self.cleaned_data['csv_file']
+        if not f.name.lower().endswith('.csv'):
+            raise forms.ValidationError('Please upload a .csv file.')
+        return f
+
+
 class CategoryForm(forms.ModelForm):
     class Meta:
         model = Category

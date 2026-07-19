@@ -22,13 +22,14 @@ except ImportError:
         return decorator
 
 from menu.models import Category, MenuItem, Ingredient
+from menu.csv_import import import_menu_items_csv
 from sales.models import Sale, SaleLineItem
 from core.models import LocationStop, VenueRequest
 from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
     StaffCreateForm, StaffEditForm, StaffSetPasswordForm, SaleEditForm,
-    VenueRequestUpdateForm, GmailComposeForm,
+    VenueRequestUpdateForm, GmailComposeForm, MenuItemCSVImportForm,
 )
 from .gmail_client import GmailClient
 
@@ -182,6 +183,32 @@ def menu_item_edit(request, pk):
     return render(request, 'dashboard/menu_item_form.html', {
         'form': form, 'formset': formset, 'title': f'Edit {item.name}', 'item': item,
     })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def menu_item_import(request):
+    if request.method == 'POST':
+        form = MenuItemCSVImportForm(request.POST, request.FILES)
+        if form.is_valid():
+            result = import_menu_items_csv(
+                form.cleaned_data['csv_file'],
+                overwrite_images=form.cleaned_data['overwrite_images'],
+            )
+            if result.created or result.updated:
+                messages.success(
+                    request,
+                    f'Imported: {result.created} created, {result.updated} updated, '
+                    f'{result.images_attached} image(s) attached.',
+                )
+            for error in result.errors:
+                messages.error(request, error)
+            if result.ok:
+                return redirect('dashboard:menu_item_list')
+    else:
+        form = MenuItemCSVImportForm()
+    return render(request, 'dashboard/menu_item_import.html', {'form': form})
 
 
 @login_required(login_url='dashboard:login')

@@ -5,7 +5,10 @@
 {% block dashboard_content %}
 <div class="table-toolbar">
   <h1 style="margin:0;">Menu Items</h1>
-  <a href="{% url 'dashboard:menu_item_create' %}" class="btn btn-primary">+ Add Menu Item</a>
+  <div style="display:flex; gap:8px;">
+    <a href="{% url 'dashboard:menu_item_import' %}" class="btn btn-outline">Import CSV</a>
+    <a href="{% url 'dashboard:menu_item_create' %}" class="btn btn-primary">+ Add Menu Item</a>
+  </div>
 </div>
 
 <table class="data-table">

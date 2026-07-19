@@ -1,0 +1,31 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Import Menu Items — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<h1 style="margin-top:0;">Import Menu Items from CSV</h1>
+<p style="color:var(--pc-gray); font-size:0.9rem; max-width:640px;">
+  Upload a CSV with columns: <code>slug, name, category, price, description, image, calories, display_order, is_available, is_featured</code>.
+  Items are matched by <code>slug</code> — existing items are updated, new ones are created.
+  The <code>image</code> column is a filename (e.g. <code>cheese.jpg</code>) that must already exist in the app's
+  <code>menu/seed_images/</code> folder.
+</p>
+
+<form method="post" enctype="multipart/form-data" style="max-width:640px;">
+  {% csrf_token %}
+  {% for field in form %}
+    <div class="form-group">
+      {% if field.name == 'overwrite_images' %}
+        <label>{{ field }} {{ field.label }}</label>
+      {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+      {% endif %}
+      {% if field.help_text %}<small style="color:var(--pc-gray);">{{ field.help_text }}</small>{% endif %}
+      {% if field.errors %}<div class="form-errors">{{ field.errors }}</div>{% endif %}
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="btn btn-primary">Import</button>
+  <a href="{% url 'dashboard:menu_item_list' %}" class="btn btn-outline">Cancel</a>
+</form>
+{% endblock %}

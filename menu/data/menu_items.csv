@@ -1,0 +1,7 @@
+slug,name,category,price,description,image,calories,display_order,is_available,is_featured
+cheese,Cheese,Pizza Cones,6.99,"Classic, creamy melted mozzarella cheese with zesty pizza sauce in a golden baked cone.",cheese.jpg,,1,true,false
+pepperoni,Pepperoni,Pizza Cones,7.99,Zesty pepperoni and gooey mozzarella cheese with zesty pizza sauce in every delicious bite.,pepperoni.jpg,,2,true,false
+italian-sausage,Italian Sausage,Pizza Cones,7.99,Savory Italian sausage and melted mozzarella cheese with zesty pizza sauce in our signature cone.,italian-sausage.jpg,,3,true,false
+veggie,Veggie,Pizza Cones,7.99,"Fresh bell peppers, onions, olives, mushrooms, melted mozzarella cheese, and our zesty pizza sauce in a crispy cone.",veggie.jpg,,4,true,false
+meat-lovers,Meat Lovers,Pizza Cones,8.99,"Loaded with pepperoni, Italian sausage, bacon, and melted mozzarella cheese with our zesty pizza sauce — our ultimate cone.",meat-lovers.jpg,,5,true,false
+frozen-lemonade,Frozen Lemonade,Drinks,4.49,"Frozen lemonade with real strawberries. Choose your fruit: strawberries, pineapples, or peaches.",frozen-lemonade.jpg,,1,true,true
