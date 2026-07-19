@@ -1,0 +1,45 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Venue Calendar — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Venue Calendar</h1>
+  <a href="{% url 'dashboard:venue_request_list' %}" class="btn btn-outline">View Requests</a>
+</div>
+
+<div class="calendar-nav">
+  <a href="?month={{ prev_month|date:'Y-m' }}" class="btn btn-outline btn-sm">← {{ prev_month|date:"M Y" }}</a>
+  <h2 style="margin:0;">{{ month_start|date:"F Y" }}</h2>
+  <a href="?month={{ next_month|date:'Y-m' }}" class="btn btn-outline btn-sm">{{ next_month|date:"M Y" }} →</a>
+</div>
+
+<div class="venue-calendar-grid">
+  <div class="venue-calendar-day-header">Sun</div>
+  <div class="venue-calendar-day-header">Mon</div>
+  <div class="venue-calendar-day-header">Tue</div>
+  <div class="venue-calendar-day-header">Wed</div>
+  <div class="venue-calendar-day-header">Thu</div>
+  <div class="venue-calendar-day-header">Fri</div>
+  <div class="venue-calendar-day-header">Sat</div>
+
+  {% for week in week_rows %}
+    {% for day in week %}
+      <div class="venue-calendar-day {% if not day.in_month %}is-outside{% endif %} {% if day.date == today %}is-today{% endif %}">
+        <div class="venue-calendar-date">{{ day.date|date:"j" }}</div>
+
+        {% for stop in day.stops %}
+          <div class="calendar-chip stop-chip">
+            Stop: {{ stop.name }}
+          </div>
+        {% endfor %}
+
+        {% for req in day.venue_requests %}
+          <a href="{% url 'dashboard:venue_request_edit' req.pk %}" class="calendar-chip request-chip">
+            Request: {{ req.organization_name }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  {% endfor %}
+</div>
+{% endblock %}

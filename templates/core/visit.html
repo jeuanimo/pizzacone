@@ -25,7 +25,7 @@
         </div>
         {% if todays_stop.map_embed_url %}
           <div style="margin-top:20px; border-radius:12px; overflow:hidden; box-shadow:var(--shadow);">
-            <iframe src="{{ todays_stop.map_embed_url }}" width="100%" height="280" style="border:0; display:block;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            <iframe src="{{ todays_stop.map_embed_url }}" title="Map for {{ todays_stop.name }}" width="100%" height="280" style="border:0; display:block;" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
         {% endif %}
       </div>
@@ -65,7 +65,90 @@
       <p style="color:var(--pc-gray);">No upcoming stops scheduled yet — check back soon!</p>
     {% endif %}
 
-    <div class="confirmation-box" style="text-align:left; margin-top:40px;">
+    <div class="confirmation-box" style="text-align:left; margin-top:40px; max-width:none;">
+      <h3 style="margin-top:0; color:var(--pc-red);">Bring Pizza Cone To Your Event</h3>
+      <p style="color:var(--pc-gray);">Fill this out and our staff will follow up with availability and next steps.</p>
+
+      <form method="post" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px;">
+        {% csrf_token %}
+
+        {% if venue_request_form.non_field_errors %}
+          <div class="form-errors" style="grid-column:1 / -1;">{{ venue_request_form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.organization_name.id_for_label }}">Organization</label>
+          {{ venue_request_form.organization_name }}
+          {% if venue_request_form.organization_name.errors %}<div class="form-errors">{{ venue_request_form.organization_name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.contact_name.id_for_label }}">Contact Name</label>
+          {{ venue_request_form.contact_name }}
+          {% if venue_request_form.contact_name.errors %}<div class="form-errors">{{ venue_request_form.contact_name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.contact_email.id_for_label }}">Email</label>
+          {{ venue_request_form.contact_email }}
+          {% if venue_request_form.contact_email.errors %}<div class="form-errors">{{ venue_request_form.contact_email.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.contact_phone.id_for_label }}">Phone</label>
+          {{ venue_request_form.contact_phone }}
+          {% if venue_request_form.contact_phone.errors %}<div class="form-errors">{{ venue_request_form.contact_phone.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.requested_date.id_for_label }}">Requested Date</label>
+          {{ venue_request_form.requested_date }}
+          {% if venue_request_form.requested_date.errors %}<div class="form-errors">{{ venue_request_form.requested_date.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.requested_start_time.id_for_label }}">Start Time</label>
+          {{ venue_request_form.requested_start_time }}
+          {% if venue_request_form.requested_start_time.errors %}<div class="form-errors">{{ venue_request_form.requested_start_time.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.requested_end_time.id_for_label }}">End Time</label>
+          {{ venue_request_form.requested_end_time }}
+          {% if venue_request_form.requested_end_time.errors %}<div class="form-errors">{{ venue_request_form.requested_end_time.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ venue_request_form.estimated_attendance.id_for_label }}">Estimated Attendance</label>
+          {{ venue_request_form.estimated_attendance }}
+          {% if venue_request_form.estimated_attendance.errors %}<div class="form-errors">{{ venue_request_form.estimated_attendance.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="grid-column:1 / -1;">
+          <label for="{{ venue_request_form.venue_name.id_for_label }}">Venue Name</label>
+          {{ venue_request_form.venue_name }}
+          {% if venue_request_form.venue_name.errors %}<div class="form-errors">{{ venue_request_form.venue_name.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="grid-column:1 / -1;">
+          <label for="{{ venue_request_form.venue_address.id_for_label }}">Venue Address</label>
+          {{ venue_request_form.venue_address }}
+          {% if venue_request_form.venue_address.errors %}<div class="form-errors">{{ venue_request_form.venue_address.errors }}</div>{% endif %}
+        </div>
+
+        <div class="form-group" style="grid-column:1 / -1;">
+          <label for="{{ venue_request_form.message.id_for_label }}">Event Details</label>
+          {{ venue_request_form.message }}
+          {% if venue_request_form.message.errors %}<div class="form-errors">{{ venue_request_form.message.errors }}</div>{% endif %}
+        </div>
+
+        <div style="grid-column:1 / -1;">
+          <button type="submit" class="btn btn-primary">Send Venue Request</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="confirmation-box" style="text-align:left; margin-top:20px;">
       <h3 style="margin-top:0; color:var(--pc-red);">📞 Contact</h3>
       <p>{{ store_phone }}</p>
       <h3 style="color:var(--pc-red);">⏰ Typical Hours</h3>

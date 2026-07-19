@@ -78,6 +78,13 @@ img { max-width: 100%; display: block; }
   gap: 26px;
 }
 
+.main-nav a:focus-visible,
+.mobile-nav-toggle:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--pc-gold);
+  outline-offset: 2px;
+}
+
 .main-nav a {
   color: var(--pc-cream);
   font-weight: 700;
@@ -181,6 +188,23 @@ img { max-width: 100%; display: block; }
 
 .hero-social-instagram { left: 53.3%; }
 .hero-social-facebook { left: 59%; }
+
+.hero-social-mobile {
+  display: none;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.hero-social-mobile a {
+  background: rgba(245, 185, 33, 0.14);
+  border: 1px solid rgba(245, 185, 33, 0.45);
+  color: var(--pc-gold);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
 
 .hero-cta {
   text-align: center;
@@ -571,6 +595,74 @@ img { max-width: 100%; display: block; }
 
 .thumb-sm { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; }
 
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.venue-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.venue-calendar-day-header {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--pc-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.venue-calendar-day {
+  background: #fff;
+  border-radius: 12px;
+  min-height: 120px;
+  padding: 10px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.venue-calendar-day.is-outside {
+  opacity: 0.45;
+}
+
+.venue-calendar-day.is-today {
+  outline: 2px solid var(--pc-gold);
+}
+
+.venue-calendar-date {
+  font-weight: 800;
+  color: var(--pc-red);
+  font-size: 0.9rem;
+}
+
+.calendar-chip {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 9px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.stop-chip {
+  background: #ffe6b3;
+  color: #7a4a00;
+}
+
+.request-chip {
+  background: #d6e6fb;
+  color: #1a4d8f;
+}
+
 .login-box form input[type="text"],
 .login-box form input[type="password"] {
   width: 100%;
@@ -591,22 +683,155 @@ img { max-width: 100%; display: block; }
 }
 
 @media (max-width: 900px) {
+  .container { padding: 0 16px; }
+  .section { padding: 44px 0; }
+  .hero-cta { padding: 28px 16px 38px; }
+  .hero-cta p { font-size: 1.02rem; }
   .item-detail, .checkout-layout { grid-template-columns: 1fr; }
+  .item-grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
   .dashboard-layout { grid-template-columns: 1fr; }
   .dashboard-sidebar { display: flex; overflow-x: auto; padding: 10px 0; }
   .dashboard-sidebar a { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+  .dashboard-main { padding: 22px 16px; }
+  .dashboard-main .data-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .dashboard-main td[style*='display:flex'] {
+    flex-wrap: wrap;
+  }
+  .venue-calendar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .venue-calendar-day-header {
+    display: none;
+  }
 }
 
 @media (max-width: 720px) {
+  .site-header .container { height: 64px; }
+  .logo-link img { height: 46px; }
   .main-nav { display: none; }
   .mobile-nav-toggle { display: block; }
   .main-nav.open {
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 72px; left: 0; right: 0;
+    top: 64px; left: 0; right: 0;
     background: var(--pc-black);
     padding: 16px 20px;
     gap: 14px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.28);
+  }
+  .main-nav.open a {
+    width: 100%;
+    border-bottom: none;
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .main-nav.open .cart-pill {
+    justify-content: center;
+  }
+  .hero-social-link {
+    display: none;
+  }
+  .hero-social-mobile {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .footer-grid {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .btn {
+    padding: 11px 18px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .section { padding: 38px 0; }
+  .item-grid {
+    grid-template-columns: 1fr;
+  }
+  .item-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .item-card-footer .btn {
+    width: 100%;
+    text-align: center;
+  }
+  .hero-cta h1 {
+    font-size: 1.7rem;
+  }
+  .feature-strip ul {
+    gap: 12px;
+    font-size: 0.92rem;
+  }
+  .confirmation-box {
+    padding: 28px 18px;
+  }
+
+  .venue-calendar-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-main .data-table {
+    display: block;
+    border-collapse: separate;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .dashboard-main .data-table thead {
+    display: none;
+  }
+
+  .dashboard-main .data-table tbody {
+    display: block;
+  }
+
+  .dashboard-main .data-table tr {
+    display: block;
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+
+  .dashboard-main .data-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    white-space: normal;
+    padding: 10px 14px;
+    border-bottom: 1px solid #f0e7d0;
+  }
+
+  .dashboard-main .data-table td::before {
+    content: attr(data-label);
+    font-weight: 800;
+    color: var(--pc-gray);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    flex: 0 0 44%;
+  }
+
+  .dashboard-main .data-table td[colspan] {
+    display: block;
+  }
+
+  .dashboard-main .data-table td[colspan]::before {
+    content: none;
+  }
+
+  .dashboard-main .data-table tr td:last-child {
+    border-bottom: none;
   }
 }

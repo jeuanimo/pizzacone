@@ -40,4 +40,14 @@ urlpatterns = [
     path('schedule/add/', views.schedule_create, name='schedule_create'),
     path('schedule/<int:pk>/edit/', views.schedule_edit, name='schedule_edit'),
     path('schedule/<int:pk>/delete/', views.schedule_delete, name='schedule_delete'),
+
+    path('venue-requests/', views.venue_request_list, name='venue_request_list'),
+    path('venue-requests/<int:pk>/edit/', views.venue_request_edit, name='venue_request_edit'),
+    path('venue-calendar/', views.venue_calendar, name='venue_calendar'),
+
+    path('mail/', views.mailbox_inbox, name='mailbox_inbox'),
+    path('mail/compose/', views.mailbox_compose, name='mailbox_compose'),
+    path('mail/<str:uid>/', views.mailbox_message_detail, name='mailbox_message_detail'),
+    path('mail/<str:uid>/reply/', views.mailbox_reply, name='mailbox_reply'),
+    path('mail/<str:uid>/delete/', views.mailbox_delete, name='mailbox_delete'),
 ]

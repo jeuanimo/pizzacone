@@ -65,3 +65,39 @@ class LocationStop(models.Model):
             from urllib.parse import quote
             return f'https://www.google.com/maps?q={quote(self.address)}&output=embed'
         return ''
+
+
+class VenueRequest(models.Model):
+    STATUS_NEW = 'new'
+    STATUS_IN_REVIEW = 'in_review'
+    STATUS_SCHEDULED = 'scheduled'
+    STATUS_DECLINED = 'declined'
+
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'New'),
+        (STATUS_IN_REVIEW, 'In Review'),
+        (STATUS_SCHEDULED, 'Scheduled'),
+        (STATUS_DECLINED, 'Declined'),
+    ]
+
+    organization_name = models.CharField(max_length=150)
+    contact_name = models.CharField(max_length=120)
+    contact_email = models.EmailField()
+    contact_phone = models.CharField(max_length=40, blank=True)
+    requested_date = models.DateField()
+    requested_start_time = models.TimeField(blank=True, null=True)
+    requested_end_time = models.TimeField(blank=True, null=True)
+    venue_name = models.CharField(max_length=150)
+    venue_address = models.CharField(max_length=255)
+    estimated_attendance = models.PositiveIntegerField(blank=True, null=True)
+    message = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW)
+    staff_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['requested_date', '-created_at']
+
+    def __str__(self):
+        return f'{self.organization_name} - {self.requested_date}'

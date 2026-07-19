@@ -1,0 +1,37 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}{% if is_reply %}Reply Email{% else %}Compose Email{% endif %} — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">{% if is_reply %}Reply Email{% else %}Compose Email{% endif %}</h1>
+  <a href="{% url 'dashboard:mailbox_inbox' %}" class="btn btn-outline">Back to Inbox</a>
+</div>
+
+<form method="post" class="confirmation-box" style="max-width:none; text-align:left;">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="form-errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-group">
+    <label for="{{ form.to_email.id_for_label }}">To</label>
+    {{ form.to_email }}
+    {% if form.to_email.errors %}<div class="form-errors">{{ form.to_email.errors }}</div>{% endif %}
+  </div>
+
+  <div class="form-group">
+    <label for="{{ form.subject.id_for_label }}">Subject</label>
+    {{ form.subject }}
+    {% if form.subject.errors %}<div class="form-errors">{{ form.subject.errors }}</div>{% endif %}
+  </div>
+
+  <div class="form-group">
+    <label for="{{ form.body.id_for_label }}">Message</label>
+    {{ form.body }}
+    {% if form.body.errors %}<div class="form-errors">{{ form.body.errors }}</div>{% endif %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Send Email</button>
+</form>
+{% endblock %}

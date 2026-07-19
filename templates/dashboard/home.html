@@ -23,6 +23,14 @@
     <div class="num">{{ low_stock|length }}</div>
     <div class="label">Low Stock Alerts</div>
   </div>
+  <div class="stat-card">
+    <div class="num">{{ stats.new_venue_requests }}</div>
+    <div class="label">New Venue Requests</div>
+  </div>
+  <a href="{% url 'dashboard:mailbox_inbox' %}" class="stat-card" style="text-decoration:none; border-top-color: var(--pc-red);">
+    <div class="num">✉️</div>
+    <div class="label">Open Mailbox</div>
+  </a>
 </div>
 
 <div class="table-toolbar">
@@ -31,6 +39,9 @@
 <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:34px;">
   <a href="{% url 'dashboard:record_sale' %}" class="btn btn-primary">💰 Record a Sale</a>
   <a href="{% url 'dashboard:schedule_create' %}" class="btn btn-gold">📍 Add a Stop</a>
+  <a href="{% url 'dashboard:venue_request_list' %}" class="btn btn-gold">📬 View Requests</a>
+  <a href="{% url 'dashboard:venue_calendar' %}" class="btn btn-outline">🗓️ Venue Calendar</a>
+  <a href="{% url 'dashboard:mailbox_inbox' %}" class="btn btn-primary">✉️ Open Mailbox</a>
   <a href="{% url 'dashboard:menu_item_create' %}" class="btn btn-outline">+ Add Menu Item</a>
   <a href="{% url 'dashboard:ingredient_create' %}" class="btn btn-outline">+ Add Ingredient</a>
 </div>

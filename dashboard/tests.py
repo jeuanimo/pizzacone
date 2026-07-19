@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
+from core.models import VenueRequest
 from menu.models import Category, MenuItem
 
 
@@ -96,3 +97,37 @@ class StaffMenuManagementTests(TestCase):
 
 		self.assertEqual(response.status_code, 302)
 		self.assertTrue(response.url.startswith(reverse('dashboard:login')))
+
+	def test_staff_can_view_venue_request_list(self):
+		VenueRequest.objects.create(
+			organization_name='Community Church',
+			contact_name='Alex Host',
+			contact_email='alex@example.com',
+			requested_date='2026-10-10',
+			venue_name='Church Lawn',
+			venue_address='100 Main St',
+			message='Please bring the truck for our fundraiser.',
+		)
+
+		self.client.force_login(self.staff_user)
+		response = self.client.get(reverse('dashboard:venue_request_list'))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'Community Church')
+
+	def test_staff_can_view_venue_calendar(self):
+		VenueRequest.objects.create(
+			organization_name='School PTO',
+			contact_name='Jordan Lee',
+			contact_email='jordan@example.com',
+			requested_date='2026-10-15',
+			venue_name='Lincoln Elementary',
+			venue_address='42 School Dr',
+			message='Family night food vendor request.',
+		)
+
+		self.client.force_login(self.staff_user)
+		response = self.client.get(reverse('dashboard:venue_calendar') + '?month=2026-10')
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'School PTO')

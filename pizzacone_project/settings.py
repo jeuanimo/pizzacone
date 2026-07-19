@@ -325,3 +325,20 @@ STORE_NAME = 'The Pizza Cone Co.'
 STORE_PHONE = '(555) 123-4663'
 STORE_ADDRESS = '123 Main Street, Anytown, USA'
 STORE_HOURS = 'Mon–Sat: 11am–9pm  |  Sun: 12pm–7pm'
+
+# Email configuration (Gmail SMTP)
+if ENVIRONMENT == 'production':
+    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+else:
+    # Keep local development simple unless explicitly overridden.
+    EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@pizzacone.local')
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '20'))

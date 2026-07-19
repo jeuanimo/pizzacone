@@ -1,0 +1,60 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Venue Requests — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Venue Requests</h1>
+  <a href="{% url 'dashboard:venue_calendar' %}" class="btn btn-outline">View Calendar</a>
+</div>
+
+<form method="get" style="display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; margin-bottom:18px;">
+  <div>
+    <label for="status" style="display:block; font-weight:700; margin-bottom:6px;">Filter by status</label>
+    <select id="status" name="status" class="form-input">
+      <option value="">All statuses</option>
+      {% for value, label in status_choices %}
+        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+  <a href="{% url 'dashboard:venue_request_list' %}" class="btn btn-outline btn-sm">Clear</a>
+</form>
+
+<table class="data-table">
+  <thead>
+    <tr><th>Requested Date</th><th>Organization</th><th>Contact</th><th>Venue</th><th>Status</th><th></th></tr>
+  </thead>
+  <tbody>
+    {% for req in venue_requests %}
+      <tr>
+        <td>{{ req.requested_date|date:"D, M j, Y" }}</td>
+        <td>{{ req.organization_name }}</td>
+        <td>
+          {{ req.contact_name }}<br>
+          <span style="color:var(--pc-gray); font-size:0.85rem;">{{ req.contact_email }}</span>
+          {% if req.contact_phone %}<br><span style="color:var(--pc-gray); font-size:0.85rem;">{{ req.contact_phone }}</span>{% endif %}
+        </td>
+        <td>
+          {{ req.venue_name }}<br>
+          <span style="color:var(--pc-gray); font-size:0.85rem;">{{ req.venue_address }}</span>
+        </td>
+        <td>
+          {% if req.status == 'new' %}
+            <span class="status-badge status-cancelled">New</span>
+          {% elif req.status == 'in_review' %}
+            <span class="status-badge status-preparing">In Review</span>
+          {% elif req.status == 'scheduled' %}
+            <span class="status-badge status-ready">Scheduled</span>
+          {% else %}
+            <span class="status-badge status-completed">Declined</span>
+          {% endif %}
+        </td>
+        <td><a href="{% url 'dashboard:venue_request_edit' req.pk %}" class="btn btn-outline btn-sm">Open</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No venue requests found yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

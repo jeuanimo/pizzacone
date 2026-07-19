@@ -1,0 +1,47 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Review Venue Request — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Review Venue Request</h1>
+  <a href="{% url 'dashboard:venue_request_list' %}" class="btn btn-outline">Back to Requests</a>
+</div>
+
+<div class="confirmation-box" style="max-width:none; text-align:left; margin-bottom:24px;">
+  <h3 style="margin-top:0; color:var(--pc-red);">{{ venue_request.organization_name }}</h3>
+  <p style="margin:0 0 6px;"><strong>Requested Date:</strong> {{ venue_request.requested_date|date:"D, M j, Y" }}</p>
+  <p style="margin:0 0 6px;"><strong>Requested Time:</strong>
+    {% if venue_request.requested_start_time and venue_request.requested_end_time %}
+      {{ venue_request.requested_start_time|time:"g:i A" }} - {{ venue_request.requested_end_time|time:"g:i A" }}
+    {% else %}
+      Not provided
+    {% endif %}
+  </p>
+  <p style="margin:0 0 6px;"><strong>Contact:</strong> {{ venue_request.contact_name }} ({{ venue_request.contact_email }}){% if venue_request.contact_phone %}, {{ venue_request.contact_phone }}{% endif %}</p>
+  <p style="margin:0 0 6px;"><strong>Venue:</strong> {{ venue_request.venue_name }} - {{ venue_request.venue_address }}</p>
+  {% if venue_request.estimated_attendance %}<p style="margin:0 0 6px;"><strong>Estimated Attendance:</strong> {{ venue_request.estimated_attendance }}</p>{% endif %}
+  <p style="margin:14px 0 0;"><strong>Message:</strong><br>{{ venue_request.message|linebreaksbr }}</p>
+</div>
+
+<form method="post" class="confirmation-box" style="max-width:none; text-align:left;">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="form-errors">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <div class="form-group">
+    <label for="{{ form.status.id_for_label }}">Status</label>
+    {{ form.status }}
+    {% if form.status.errors %}<div class="form-errors">{{ form.status.errors }}</div>{% endif %}
+  </div>
+
+  <div class="form-group">
+    <label for="{{ form.staff_notes.id_for_label }}">Staff Notes</label>
+    {{ form.staff_notes }}
+    {% if form.staff_notes.errors %}<div class="form-errors">{{ form.staff_notes.errors }}</div>{% endif %}
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+</form>
+{% endblock %}

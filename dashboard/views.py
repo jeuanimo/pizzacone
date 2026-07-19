@@ -1,5 +1,7 @@
-from datetime import timedelta
+import calendar
+from datetime import date, datetime, timedelta
 from decimal import Decimal
+from html import escape
 
 from django.contrib.auth import login, logout, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -21,12 +23,14 @@ except ImportError:
 
 from menu.models import Category, MenuItem, Ingredient
 from sales.models import Sale, SaleLineItem
-from core.models import LocationStop
+from core.models import LocationStop, VenueRequest
 from .forms import (
     MenuItemForm, CategoryForm, IngredientForm, RestockForm,
     MenuItemIngredientFormSet, SaleNoteForm, LocationStopForm,
     StaffCreateForm, StaffEditForm, StaffSetPasswordForm, SaleEditForm,
+    VenueRequestUpdateForm, GmailComposeForm,
 )
+from .gmail_client import GmailClient
 
 User = get_user_model()
 
@@ -36,6 +40,8 @@ INVENTORY_LIST_URL = 'dashboard:inventory_list'
 SCHEDULE_LIST_URL = 'dashboard:schedule_list'
 SALES_HISTORY_URL = 'dashboard:sales_history'
 STAFF_USER_LIST_URL = 'dashboard:staff_user_list'
+VENUE_REQUEST_LIST_URL = 'dashboard:venue_request_list'
+MAILBOX_INBOX_URL = 'dashboard:mailbox_inbox'
 
 
 def is_staff_user(user):
@@ -82,6 +88,7 @@ def dashboard_home(request):
         'total_categories': Category.objects.count(),
         'today_sale_count': today_sales.count(),
         'today_revenue': today_sales.aggregate(total=Sum('total'))['total'] or Decimal('0.00'),
+        'new_venue_requests': VenueRequest.objects.filter(status=VenueRequest.STATUS_NEW).count(),
     }
     recent_items = MenuItem.objects.select_related('category').order_by('-updated_at')[:5]
     low_stock = Ingredient.objects.filter(quantity_on_hand__lte=F('reorder_threshold')).order_by('quantity_on_hand')
@@ -93,6 +100,42 @@ def dashboard_home(request):
         'low_stock': low_stock,
         'recent_sales': recent_sales,
     })
+
+
+def _parse_calendar_month(month_value, today):
+    if month_value:
+        try:
+            parsed = datetime.strptime(month_value, '%Y-%m').date()
+            return date(parsed.year, parsed.month, 1)
+        except ValueError:
+            pass
+    return date(today.year, today.month, 1)
+
+
+def _build_calendar_weeks(month_start, stops, venue_requests):
+    month_calendar = calendar.Calendar(firstweekday=6)
+    weeks = month_calendar.monthdatescalendar(month_start.year, month_start.month)
+
+    stops_by_day = {}
+    for stop in stops:
+        stops_by_day.setdefault(stop.date, []).append(stop)
+
+    requests_by_day = {}
+    for venue_request in venue_requests:
+        requests_by_day.setdefault(venue_request.requested_date, []).append(venue_request)
+
+    week_rows = []
+    for week in weeks:
+        week_rows.append([
+            {
+                'date': day,
+                'in_month': day.month == month_start.month,
+                'stops': stops_by_day.get(day, []),
+                'venue_requests': requests_by_day.get(day, []),
+            }
+            for day in week
+        ])
+    return week_rows
 
 
 # ---------------------------------------------------------------- Menu items
@@ -388,6 +431,195 @@ def sales_reports(request):
 def schedule_list(request):
     stops = LocationStop.objects.all().order_by('date', 'start_time')
     return render(request, 'dashboard/schedule_list.html', {'stops': stops})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def venue_request_list(request):
+    status_filter = request.GET.get('status', '').strip()
+    venue_requests = VenueRequest.objects.all()
+    if status_filter:
+        venue_requests = venue_requests.filter(status=status_filter)
+
+    return render(request, 'dashboard/venue_request_list.html', {
+        'venue_requests': venue_requests,
+        'status_filter': status_filter,
+        'status_choices': VenueRequest.STATUS_CHOICES,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def venue_request_edit(request, pk):
+    venue_request = get_object_or_404(VenueRequest, pk=pk)
+    if request.method == 'POST':
+        form = VenueRequestUpdateForm(request.POST, instance=venue_request)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Venue request updated.')
+            return redirect(VENUE_REQUEST_LIST_URL)
+    else:
+        form = VenueRequestUpdateForm(instance=venue_request)
+
+    return render(request, 'dashboard/venue_request_form.html', {
+        'form': form,
+        'venue_request': venue_request,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def venue_calendar(request):
+    today = timezone.localdate()
+    month_start = _parse_calendar_month(request.GET.get('month'), today)
+    month_calendar = calendar.Calendar(firstweekday=6)
+    weeks = month_calendar.monthdatescalendar(month_start.year, month_start.month)
+    start_day = weeks[0][0]
+    end_day = weeks[-1][-1]
+
+    stops = LocationStop.objects.filter(date__gte=start_day, date__lte=end_day, is_cancelled=False).order_by('date', 'start_time')
+    venue_requests = VenueRequest.objects.filter(requested_date__gte=start_day, requested_date__lte=end_day).order_by('requested_date')
+
+    prev_month = (month_start - timedelta(days=1)).replace(day=1)
+    next_month = (month_start + timedelta(days=32)).replace(day=1)
+
+    return render(request, 'dashboard/venue_calendar.html', {
+        'month_start': month_start,
+        'week_rows': _build_calendar_weeks(month_start, stops, venue_requests),
+        'prev_month': prev_month,
+        'next_month': next_month,
+        'today': today,
+    })
+
+
+def _quote_body_for_reply(original_message):
+    original_lines = (original_message.get('body') or '').splitlines()
+    if not original_lines:
+        return ''
+    quoted = '\n'.join(f'> {line}' for line in original_lines)
+    return f"\n\n----- Original message -----\n{quoted}"
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def mailbox_inbox(request):
+    inbox_messages = []
+    mailbox_error = ''
+    try:
+        inbox_messages = GmailClient().list_inbox_messages(limit=40)
+    except Exception as exc:  # noqa: BLE001
+        mailbox_error = str(exc)
+
+    return render(request, 'dashboard/mailbox_inbox.html', {
+        'inbox_messages': inbox_messages,
+        'mailbox_error': mailbox_error,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET"])
+def mailbox_message_detail(request, uid):
+    try:
+        message_data = GmailClient().read_message(uid)
+    except Exception as exc:  # noqa: BLE001
+        messages.error(request, f'Unable to load email: {exc}')
+        return redirect(MAILBOX_INBOX_URL)
+
+    return render(request, 'dashboard/mailbox_detail.html', {
+        'message_data': message_data,
+        'escaped_body': escape(message_data.get('body', '')),
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def mailbox_compose(request):
+    if request.method == 'POST':
+        form = GmailComposeForm(request.POST)
+        if form.is_valid():
+            try:
+                GmailClient().send_message(
+                    to_email=form.cleaned_data['to_email'],
+                    subject=form.cleaned_data['subject'],
+                    body=form.cleaned_data['body'],
+                )
+                messages.success(request, 'Email sent successfully.')
+                return redirect(MAILBOX_INBOX_URL)
+            except Exception as exc:  # noqa: BLE001
+                messages.error(request, f'Email could not be sent: {exc}')
+    else:
+        form = GmailComposeForm(
+            initial={
+                'to_email': request.GET.get('to', ''),
+                'subject': request.GET.get('subject', ''),
+                'body': request.GET.get('body', ''),
+            }
+        )
+
+    return render(request, 'dashboard/mailbox_compose.html', {'form': form})
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["GET", "POST"])
+def mailbox_reply(request, uid):
+    try:
+        original_message = GmailClient().read_message(uid)
+    except Exception as exc:  # noqa: BLE001
+        messages.error(request, f'Unable to load email for reply: {exc}')
+        return redirect(MAILBOX_INBOX_URL)
+
+    default_subject = original_message.get('subject') or '(No subject)'
+    if not default_subject.lower().startswith('re:'):
+        default_subject = f'Re: {default_subject}'
+
+    if request.method == 'POST':
+        form = GmailComposeForm(request.POST)
+        if form.is_valid():
+            try:
+                GmailClient().send_message(
+                    to_email=form.cleaned_data['to_email'],
+                    subject=form.cleaned_data['subject'],
+                    body=form.cleaned_data['body'],
+                    in_reply_to=original_message.get('message_id') or None,
+                    references=original_message.get('message_id') or None,
+                )
+                messages.success(request, 'Reply sent successfully.')
+                return redirect('dashboard:mailbox_message_detail', uid=uid)
+            except Exception as exc:  # noqa: BLE001
+                messages.error(request, f'Reply could not be sent: {exc}')
+    else:
+        form = GmailComposeForm(
+            initial={
+                'to_email': original_message.get('from_email', ''),
+                'subject': default_subject,
+                'body': _quote_body_for_reply(original_message),
+            }
+        )
+
+    return render(request, 'dashboard/mailbox_compose.html', {
+        'form': form,
+        'is_reply': True,
+        'reply_uid': uid,
+    })
+
+
+@login_required(login_url='dashboard:login')
+@user_passes_test(is_staff_user, login_url='dashboard:login')
+@require_http_methods(["POST"])
+def mailbox_delete(request, uid):
+    try:
+        GmailClient().delete_message(uid)
+        messages.success(request, 'Email deleted.')
+    except Exception as exc:  # noqa: BLE001
+        messages.error(request, f'Email could not be deleted: {exc}')
+    return redirect(MAILBOX_INBOX_URL)
 
 
 @login_required(login_url='dashboard:login')

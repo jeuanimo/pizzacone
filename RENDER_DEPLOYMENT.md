@@ -157,6 +157,13 @@ tail -f logs/security.log
 | `SECURE_SSL_REDIRECT` | `True` | Force HTTPS |
 | `SESSION_COOKIE_SECURE` | `True` | HTTPS only cookies |
 | `CSRF_COOKIE_SECURE` | `True` | HTTPS only cookies |
+| `EMAIL_BACKEND` | `django.core.mail.backends.smtp.EmailBackend` | SMTP backend for production mail |
+| `EMAIL_HOST` | `smtp.gmail.com` | Gmail SMTP host |
+| `EMAIL_PORT` | `587` | TLS SMTP port |
+| `EMAIL_USE_TLS` | `True` | Gmail requires TLS on port 587 |
+| `EMAIL_HOST_USER` | your Gmail address | Store in Render dashboard as secret |
+| `EMAIL_HOST_PASSWORD` | Gmail app password | Use app password, not account password |
+| `DEFAULT_FROM_EMAIL` | same as `EMAIL_HOST_USER` | Sender used by Django mail |
 
 ## File Structure for Render
 

@@ -1,0 +1,29 @@
+{% extends "dashboard/_dashboard_base.html" %}
+{% block title %}Read Email — Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="table-toolbar">
+  <h1 style="margin:0;">Read Email</h1>
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+    <a href="{% url 'dashboard:mailbox_reply' message_data.uid %}" class="btn btn-primary btn-sm">Reply</a>
+    <a href="{% url 'dashboard:mailbox_compose' %}?to={{ message_data.from_email|urlencode }}" class="btn btn-outline btn-sm">Compose New</a>
+    <a href="{% url 'dashboard:mailbox_inbox' %}" class="btn btn-outline btn-sm">Back</a>
+  </div>
+</div>
+
+<div class="confirmation-box" style="max-width:none; text-align:left; margin-bottom:16px;">
+  <p style="margin:0 0 6px;"><strong>From:</strong> {{ message_data.from }}</p>
+  <p style="margin:0 0 6px;"><strong>To:</strong> {{ message_data.to }}</p>
+  <p style="margin:0 0 6px;"><strong>Date:</strong> {{ message_data.date }}</p>
+  <p style="margin:0;"><strong>Subject:</strong> {{ message_data.subject }}</p>
+</div>
+
+<div class="confirmation-box" style="max-width:none; text-align:left; margin-bottom:16px;">
+  <pre class="mail-body">{{ escaped_body }}</pre>
+</div>
+
+<form method="post" action="{% url 'dashboard:mailbox_delete' message_data.uid %}" onsubmit="return confirm('Delete this email?');">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-danger">Delete Email</button>
+</form>
+{% endblock %}

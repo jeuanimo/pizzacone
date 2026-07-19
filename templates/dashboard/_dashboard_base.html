@@ -7,6 +7,9 @@
     <a href="{% url 'dashboard:sales_history' %}" class="{% if request.resolver_match.url_name in 'sales_history,sale_detail,sale_void' %}active{% endif %}">🧾 Sales History</a>
     <a href="{% url 'dashboard:sales_reports' %}" class="{% if request.resolver_match.url_name == 'sales_reports' %}active{% endif %}">📈 Reports</a>
     <a href="{% url 'dashboard:schedule_list' %}" class="{% if 'schedule' in request.resolver_match.url_name %}active{% endif %}">📍 Location Schedule</a>
+    <a href="{% url 'dashboard:venue_request_list' %}" class="{% if 'venue_request' in request.resolver_match.url_name %}active{% endif %}">📬 Venue Requests</a>
+    <a href="{% url 'dashboard:venue_calendar' %}" class="{% if request.resolver_match.url_name == 'venue_calendar' %}active{% endif %}">🗓️ Venue Calendar</a>
+    <a href="{% url 'dashboard:mailbox_inbox' %}" class="{% if 'mailbox' in request.resolver_match.url_name %}active{% endif %}">✉️ Mailbox</a>
     <a href="{% url 'dashboard:inventory_list' %}" class="{% if 'ingredient' in request.resolver_match.url_name or request.resolver_match.url_name == 'inventory_list' %}active{% endif %}">📦 Inventory</a>
     <a href="{% url 'dashboard:menu_item_list' %}" class="{% if 'menu_item' in request.resolver_match.url_name %}active{% endif %}">🍕 Menu Items</a>
     <a href="{% url 'dashboard:category_list' %}" class="{% if 'category' in request.resolver_match.url_name %}active{% endif %}">🗂️ Categories</a>

@@ -5,7 +5,7 @@ from django.forms import inlineformset_factory
 
 from menu.models import Category, MenuItem, Ingredient, MenuItemIngredient
 from sales.models import Sale
-from core.models import LocationStop
+from core.models import LocationStop, VenueRequest
 
 User = get_user_model()
 
@@ -165,3 +165,27 @@ class SaleEditForm(forms.ModelForm):
             'payment_method': forms.Select(attrs={'class': 'form-input'}),
             'note': forms.TextInput(attrs={'class': 'form-input'}),
         }
+
+
+class VenueRequestUpdateForm(forms.ModelForm):
+    class Meta:
+        model = VenueRequest
+        fields = ['status', 'staff_notes']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-input'}),
+            'staff_notes': forms.Textarea(attrs={'class': 'form-input', 'rows': 4, 'placeholder': 'Internal notes for staff only'}),
+        }
+
+
+class GmailComposeForm(forms.Form):
+    to_email = forms.EmailField(
+        label='To',
+        widget=forms.EmailInput(attrs={'class': 'form-input', 'placeholder': 'recipient@example.com'}),
+    )
+    subject = forms.CharField(
+        max_length=255,
+        widget=forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Subject'}),
+    )
+    body = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-input', 'rows': 10, 'placeholder': 'Write your message...'}),
+    )
