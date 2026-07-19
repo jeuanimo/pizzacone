@@ -49,7 +49,7 @@ allowed_hosts = os.environ.get('ALLOWED_HOSTS')
 if allowed_hosts:
     ALLOWED_HOSTS = allowed_hosts.split(',')
 elif os.environ.get('ENVIRONMENT') == 'production':
-    ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com', 'pizzacone.onrender.com']
 else:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -173,7 +173,7 @@ csrf_trusted_origins = os.environ.get('CSRF_TRUSTED_ORIGINS')
 if csrf_trusted_origins:
     CSRF_TRUSTED_ORIGINS = csrf_trusted_origins.split(',')
 elif ENVIRONMENT == 'production':
-    CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+    CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com', 'https://pizzacone.onrender.com']
 else:
     CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
 
