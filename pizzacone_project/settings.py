@@ -45,10 +45,13 @@ else:
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # SECURITY: Configure allowed hosts
-ALLOWED_HOSTS = os.environ.get(
-    'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,0.0.0.0'
-).split(',')
+allowed_hosts = os.environ.get('ALLOWED_HOSTS')
+if allowed_hosts:
+    ALLOWED_HOSTS = allowed_hosts.split(',')
+elif os.environ.get('ENVIRONMENT') == 'production':
+    ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 
@@ -166,7 +169,13 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 CSRF_COOKIE_SECURE = ENVIRONMENT == 'production'
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Strict'
-CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8000').split(',')
+csrf_trusted_origins = os.environ.get('CSRF_TRUSTED_ORIGINS')
+if csrf_trusted_origins:
+    CSRF_TRUSTED_ORIGINS = csrf_trusted_origins.split(',')
+elif ENVIRONMENT == 'production':
+    CSRF_TRUSTED_ORIGINS = ['https://*.onrender.com']
+else:
+    CSRF_TRUSTED_ORIGINS = ['http://localhost:8000']
 
 # OWASP #4: Insecure Design & #5: Security Misconfiguration
 # HTTP Security Headers
